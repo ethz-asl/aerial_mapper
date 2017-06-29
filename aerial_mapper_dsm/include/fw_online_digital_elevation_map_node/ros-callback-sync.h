@@ -1,3 +1,11 @@
+/*
+ * ros-callback-sync.h
+ *
+ *  Created on: Jun 25, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
+
 #ifndef ROS_CALLBACK_SYNC_H_
 #define ROS_CALLBACK_SYNC_H_
 
