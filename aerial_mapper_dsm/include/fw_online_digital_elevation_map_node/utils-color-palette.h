@@ -1,3 +1,11 @@
+/*
+ * utils-color-palette.h
+ *
+ *  Created on: Jun 25, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
+
 #ifndef UTILS_COLOR_PALETTE_H_
 #define UTILS_COLOR_PALETTE_H_
 
