@@ -1,5 +1,5 @@
 /*
- * fw_online_digital_elevation_map_node.hpp
+ * fw-digital-elevation-map.hpp
  *
  *  Created on: Jun 25, 2017
  *      Author: Timo Hinzmann
