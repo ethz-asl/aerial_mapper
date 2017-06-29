@@ -3,6 +3,7 @@
 ### Overview
 - **aerial_mapper_ros: ROS input/output wrapper**
 - **aerial_mapper_grid_map: grid_map wrapper**
+- **aerial_mapper_demos**
 - **aerial_mapper_io: Standard input/output handler**
    - Load from PIX4D
    - Load from COLMAP
