@@ -1,3 +1,11 @@
+/*
+ * utils-nearest-neighbor.h
+ *
+ *  Created on: Jun 25, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
+
 #ifndef UTILS_NEAREST_NEIGHBOR_H_
 #define UTILS_NEAREST_NEIGHBOR_H_
 
