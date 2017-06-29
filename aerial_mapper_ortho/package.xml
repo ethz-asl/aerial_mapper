@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>fw_ortho</name>
+  <version>0.0.1</version>
+  <description>fw_online_orthomosaic_node</description>
+  <maintainer email="hitimo@ethz.ch">hitimo</maintainer>
+  <license>ASL</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+<depend>aslam_cv_common</depend>
+<depend>aslam_cv_cameras</depend>
+<depend>aslam_cv_frames</depend>
+<depend>aslam_cv_pipeline</depend>
+<depend>camera_info_manager</depend>
+<depend>cmake_modules</depend>
+<depend>eigen_catkin</depend>
+<depend>gflags_catkin</depend>
+<depend>glog_catkin</depend>
+<depend>image_transport</depend>
+<depend>opencv2_catkin</depend>
+<depend>rosbag</depend>
+<depend>roscpp</depend>
+<depend>sensor_msgs</depend>
+<depend>std_msgs</depend>
+<depend>minkindr_conversions</depend>
+<depend>multiagent_mapping_common</depend>
+<depend>multiagent_mapping_common_private</depend>
+<depend>sliding_window_estimator</depend>
+
+</package>
