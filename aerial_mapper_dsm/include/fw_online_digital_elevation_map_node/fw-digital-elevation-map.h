@@ -1,3 +1,11 @@
+/*
+ * fw_online_digital_elevation_map_node.hpp
+ *
+ *  Created on: Jun 25, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
+
 #ifndef FW_ONLINE_DIGITAL_ELEVATION_MAP_H_
 #define FW_ONLINE_DIGITAL_ELEVATION_MAP_H_
 
