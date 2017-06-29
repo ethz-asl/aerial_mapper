@@ -1,10 +1,11 @@
 # aerial-mapper
 
 ### Overview
-- **aerial_mapper_loader: Load input data**
+- **aerial_mapper_ros: ROS input/output wrapper**
+- **aerial_mapper_io: Standard input/output handler**
    - Load from PIX4D
    - Load from COLMAP
-   - Subscribe to ROS message
+   - Save to GeoTiff
 - **aerial_mapper_ortho: (Ortho-)Mosaic Generation**
    - Input: Raw images, camera intrinsics, camera poses 
    - Output: (Ortho-)Mosaic as ros message (grid_map) or GeoTiff
