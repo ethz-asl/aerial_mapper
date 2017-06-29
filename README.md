@@ -16,6 +16,7 @@
    - Input: 3D-pointcloud
    - Output: Elevation Map as ros message (grid_map) or GeoTiff
 
+<hr>
 
 ### Publications
 If you use this work in an academic context, please cite the following publication(s):
