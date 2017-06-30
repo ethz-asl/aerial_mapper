@@ -65,6 +65,12 @@ void AerialMapperIO::loadImagesFromFile(const std::string& filename_base,
   LOG(INFO) << "images->size() = " << images->size();
 }
 
-void AerialMapperIO::loadCameraRigFromFile() {}
+void AerialMapperIO::loadCameraRigFromFile(
+    const std::string& filename_ncameras_yaml,
+    std::shared_ptr<aslam::NCamera> ncameras) {
+  ncameras = aslam::NCamera::loadFromYaml(filename_ncameras_yaml);
+  CHECK(ncameras) << "Could not load the camera calibration from: "
+                  << filename_ncameras_yaml;
+}
 
 }  // namespace io

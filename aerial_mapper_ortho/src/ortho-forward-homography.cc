@@ -14,10 +14,11 @@
 namespace ortho {
 
 OrthoForwardHomography::OrthoForwardHomography(
-    std::string ncameras_yaml_path_filename) {
-  prepareBlenderForNextImage();
-  loadCameraRig(ncameras_yaml_path_filename);
+    const std::shared_ptr<aslam::NCamera>& ncameras,
+    const Eigen::Vector3d& origin)
+  : ncameras_(ncameras), origin_(origin) {
   CHECK(ncameras_);
+  prepareBlenderForNextImage();
   undistorter_ =
       aslam::createMappedUndistorter(ncameras_->getCameraShared(0), 1.0, 1.0,
                                      aslam::InterpolationMethod::Linear);
@@ -42,9 +43,6 @@ OrthoForwardHomography::OrthoForwardHomography(
       image_transport_->advertise("/orthomosaic/undistorted", 1);
 }
 
-void OrthoForwardHomography::loadCameraRig(
-    std::string ncameras_yaml_path_filename) {}
-
 void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable) {
   if (image_warped_mutable.type() == CV_8U ||
       image_warped_mutable.type() == CV_8UC1) {
@@ -63,7 +61,7 @@ void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable) {
 }
 
 void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable,
-                                   cv::Mat mask_image) {
+                                      cv::Mat mask_image) {
   if (image_warped_mutable.type() == CV_8U ||
       image_warped_mutable.type() == CV_8UC1) {
     cv::cvtColor(image_warped_mutable, image_warped_mutable, CV_GRAY2RGB);
@@ -78,7 +76,7 @@ void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable,
 }
 
 void OrthoForwardHomography::updateOrthomosaic(
-    const aslam::Transformation& T_G_B, const cv::Mat& image) {
+    const Pose& T_G_B, const cv::Mat& image) {
   cv::Mat image_undistorted;
   undistorter_->processImage(image, &image_undistorted);
   publishUndistortedImage(image_undistorted);
@@ -103,7 +101,7 @@ void OrthoForwardHomography::updateOrthomosaic(
                          (T_G_C.getRotationMatrix() * C_ray)(2);
     const Eigen::Vector3d& G_landmark =
         T_G_C.getPosition() + scale * T_G_C.getRotationMatrix() * C_ray -
-        Eigen::Vector3d(464980, 5.27226e+06, 414.087);
+        origin_;
     ground_points.push_back(
         cv::Point2f(G_landmark(1) + 500.0, G_landmark(0) + 500.0));
     image_points.push_back(
@@ -135,9 +133,8 @@ void OrthoForwardHomography::updateOrthomosaic(
   cv::imwrite("/tmp/result.jpg", result_);
 }
 
-void OrthoForwardHomography::batch(
-    std::vector<kindr::minimal::QuatTransformation> T_G_Bs,
-    std::vector<cv::Mat> images) {
+void OrthoForwardHomography::batch(const Poses& T_G_Bs,
+                                   const Images& images)  {
   const ros::Time time1 = ros::Time::now();
   for (size_t i = 0u; i < images.size(); ++i) {
     cv::Mat image_undistorted;
@@ -157,7 +154,7 @@ void OrthoForwardHomography::batch(
                            (T_G_C.getRotationMatrix() * C_ray)(2);
       const Eigen::Vector3d& G_landmark =
           T_G_C.getPosition() + scale * T_G_C.getRotationMatrix() * C_ray -
-          Eigen::Vector3d(464980, 5.27226e+06, 414.087);
+          origin_;
       ground_points.push_back(
           cv::Point2f(G_landmark(1) + 500.0, G_landmark(0) + 500.0));
       image_points.push_back(
@@ -212,7 +209,8 @@ void OrthoForwardHomography::prepareBlenderForNextImage() {
   blender_->prepare(rect);
 }
 
-void OrthoForwardHomography::showUndistortedCvWindow(cv::Mat image_undistorted) {
+void OrthoForwardHomography::showUndistortedCvWindow(
+    cv::Mat image_undistorted) {
   cv::imshow("Undistorted image", image_undistorted);
   cv::waitKey(1);
 }

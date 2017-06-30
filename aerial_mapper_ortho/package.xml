@@ -9,18 +9,19 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
-<depend>aslam_cv_common</depend>
-<depend>aslam_cv_cameras</depend>
-<depend>aslam_cv_frames</depend>
-<depend>aslam_cv_pipeline</depend>
-<depend>camera_info_manager</depend>
-<depend>cmake_modules</depend>
-<depend>eigen_catkin</depend>
-<depend>gflags_catkin</depend>
-<depend>glog_catkin</depend>
-<depend>image_transport</depend>
-<depend>opencv3_catkin</depend>
-<depend>minkindr_conversions</depend>
-<depend>sliding_window_estimator</depend>
+  <depend>aerial_mapper_io</depend>
+  <depend>aslam_cv_cameras</depend>
+  <depend>aslam_cv_common</depend>
+  <depend>aslam_cv_frames</depend>
+  <depend>aslam_cv_pipeline</depend>
+  <depend>camera_info_manager</depend>
+  <depend>cmake_modules</depend>
+  <depend>eigen_catkin</depend>
+  <depend>gflags_catkin</depend>
+  <depend>glog_catkin</depend>
+  <depend>image_transport</depend>
+  <depend>minkindr_conversions</depend>
+  <depend>opencv3_catkin</depend>
+  <depend>sliding_window_estimator</depend>
 
 </package>

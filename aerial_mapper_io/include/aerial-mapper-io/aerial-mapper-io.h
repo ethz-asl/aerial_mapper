@@ -13,12 +13,10 @@
 #include <Eigen/Core>
 #include <opencv2/highgui/highgui.hpp>
 
-
-
 typedef kindr::minimal::QuatTransformation Pose;
 typedef std::vector<Pose> Poses;
-typedef std::vector<cv::Mat> Images;
-
+typedef cv::Mat Image;
+typedef std::vector<Image> Images;
 
 namespace io {
 
@@ -32,10 +30,13 @@ class AerialMapperIO {
   void loadPosesFromFile(const PoseFormat& format,
                          const std::string& filename,
                          Poses* T_G_Bs);
-  void loadPosesFromFileStandard(const std::string& filename, Poses* T_G_Bs);
-  void loadImagesFromFile(const std::string& filename_base, size_t num_poses,
+  void loadPosesFromFileStandard(const std::string& filename,
+                                 Poses* T_G_Bs);
+  void loadImagesFromFile(const std::string& filename_base,
+                          size_t num_poses,
                           Images* images);
-  void loadCameraRigFromFile();
+  void loadCameraRigFromFile(const std::string& filename_ncameras_yaml,
+                             std::shared_ptr<aslam::NCamera> ncameras);
 };
 }  // namespace io
 #endif  // namespace AERIAL_MAPPER_IO_H_
