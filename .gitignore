@@ -42,3 +42,5 @@ CATKIN_IGNORE
 # MacOS Desktop Services Store
 .DS_Store
 
+# Qt Creator
+*.user
