@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>fw_ortho_from_pcl</name>
+  <name>aerial_mapping_utils</name>
   <version>0.0.1</version>
-  <description>fw_ortho_from_pcl</description>
+  <description>aerial_mapping_utils</description>
   <maintainer email="hitimo@ethz.ch">hitimo</maintainer>
   <license>ASL</license>
   

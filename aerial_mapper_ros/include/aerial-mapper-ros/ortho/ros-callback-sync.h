@@ -11,12 +11,12 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <minkindr_conversions/kindr_msg.h>
-#include <multiagent-mapping-common/buffered-lookup.h>
+#include <maplab-common/buffered-lookup.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 
-#include "fw-ortho/fw-online-orthomosaic.h"
+#include <aerial-mapper-ortho/fw-online-orthomosaic.h>
 
 class RosCallbackSync {
 public:

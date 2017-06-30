@@ -1,5 +1,5 @@
-#include "fw-ortho/ros-callback-sync.h"
-#include "fw-ortho/fw-online-orthomosaic.h"
+#include <aerial-mapper-ros/ortho/ros-callback-sync.h>
+#include <aerial-mapper-ortho/fw-online-orthomosaic.h>
 
 #include <aslam/pipeline/visual-npipeline.h>
 #include <fstream>
@@ -10,14 +10,15 @@ int main(int argc, char **argv) {
   google::InstallFailureSignalHandler();
   ros::init(argc, argv, "online_orthomosaic_node");
 
+  std::string base = "/media/timo/scnd/catkin_ws_aerial_mapper/src/aerial_mapper/data/";
   std::unique_ptr<FwOnlineOrthomosaic> online_orthomosaic_;
   std::string ncameras_yaml_path_filename =
-      "/home/timo/calibration/camera_fixed_wing.yaml";
+      base + "camera_fixed_wing.yaml";
   online_orthomosaic_.reset(new FwOnlineOrthomosaic(ncameras_yaml_path_filename));
 
   // Load text file.
   std::vector<kindr::minimal::QuatTransformation> T_G_Bs;
-  std::string file = "/tmp/opt_poses.txt";
+  std::string file = base + "opt_poses.txt";
   std::cout << "OPEN: " << file << std::endl;
   std::ifstream infile(file);
   //int64_t ts;
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
   // Load images.
   std::vector<cv::Mat> images;
   for (size_t i = 0u; i < T_G_Bs.size(); ++i) {
-    std::string filename = "/tmp/opt_image_" + std::to_string(i) + ".jpg";
+    std::string filename = base + "opt_image_" + std::to_string(i) + ".jpg";
     cv::Mat image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
     cv::imshow("Image", image);
     cv::waitKey(1);
@@ -49,15 +50,17 @@ int main(int argc, char **argv) {
   Mode mode;
   mode = Mode::Batch;
 
-  if (mode == Mode::Incremental)
+  if (mode == Mode::Incremental) {
     for (size_t i = 0u; i < images.size(); ++i) {
       std::cout << i << "/" << images.size() << std::endl;
       cv::Mat image = images[i];
       kindr::minimal::QuatTransformation T_G_B = T_G_Bs[i];
       online_orthomosaic_->updateOrthomosaic(T_G_B, image);
-    } else if (mode == Mode::Batch) {
+    }
+     } else if (mode == Mode::Batch) {
     online_orthomosaic_->batch(T_G_Bs, images);
-  }
+    }
+
   std::cout << "Finished!" << std::endl;
 
 
