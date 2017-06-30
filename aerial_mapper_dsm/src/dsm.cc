@@ -1,33 +1,29 @@
+/*
+ *    Filename: aerial-mapper-io.h
+ *  Created on: Jun 25, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
 
-#include "fw_online_digital_elevation_map_node/fw-digital-elevation-map.h"
+// HEADER
+#include "aerial-mapper-dsm/dsm.h"
 
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_types.h>
-#include <pcl/PCLPointCloud2.h>
+// NON-SYSTEM
 #include <pcl/conversions.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/point_types.h>
 #include <pcl_ros/transforms.h>
 
-DECLARE_string(DEM_filename_xyz);
-DECLARE_string(DEM_output_folder);
-DECLARE_double(DEM_interpolation_radius);
-DECLARE_int32(DEM_color_palette);
-DECLARE_double(DEM_resolution);
-DECLARE_int32(DEM_UTM_code);
-DECLARE_bool(DEM_show_output);
-DECLARE_bool(DEM_save_cv_mat_height_map);
-DECLARE_double(DEM_easting_min);
-DECLARE_double(DEM_northing_min);
-DECLARE_double(DEM_easting_max);
-DECLARE_double(DEM_northing_max);
 
-FwOnlineDigitalElevationMap::FwOnlineDigitalElevationMap(
+Dsm::Dsm(
     const sensor_msgs::PointCloud2ConstPtr& cloud_msg, const Eigen::Vector3d& origin) {
   Aligned<std::vector, Eigen::Vector3d>::type pointcloud;
   loadPointcloud(cloud_msg, origin, &pointcloud);
   process(pointcloud);
 }
 
-void FwOnlineDigitalElevationMap::loadPointcloud(
+void Dsm::loadPointcloud(
     const sensor_msgs::PointCloud2ConstPtr& cloud_msg,
     const Eigen::Vector3d& origin,
     Aligned<std::vector, Eigen::Vector3d>::type* pointcloud) {
@@ -40,7 +36,7 @@ void FwOnlineDigitalElevationMap::loadPointcloud(
   VLOG(3) << "Pointcloud size: " << pointcloud->size();
 }
 
-void FwOnlineDigitalElevationMap::loadPointcloud(
+void Dsm::loadPointcloud(
     const std::string& filename, Aligned<std::vector, Eigen::Vector3d>::type* pointcloud) {
   VLOG(3) << "Loading pointcloud from file: " << filename;
   std::ifstream infile(filename);
@@ -54,7 +50,7 @@ void FwOnlineDigitalElevationMap::loadPointcloud(
   VLOG(3) << "Pointcloud size: " << pointcloud->size();
 }
 
-void FwOnlineDigitalElevationMap::process(const Aligned<std::vector,
+void Dsm::process(const Aligned<std::vector,
                                           Eigen::Vector3d>::type& pointcloud) {
   CHECK(!pointcloud.empty());
   const int nameWidth = 30;
@@ -289,102 +285,4 @@ void FwOnlineDigitalElevationMap::process(const Aligned<std::vector,
       cv::imshow("DEM idw", ortho_image_idw);
       cv::waitKey(0);
     }
-
-    // output into files:
-    // [A] GeoTiff
-    const std::string base =
-        "geotiff_color_" + std::to_string(FLAGS_DEM_color_palette) +
-        "_radius_" + std::to_string(FLAGS_DEM_interpolation_radius) +
-        "_resolution_" + std::to_string(FLAGS_DEM_resolution);
-    const std::string filename_maximum = FLAGS_DEM_output_folder + base + "_maximum.tiff";
-    const std::string filename_minimum = FLAGS_DEM_output_folder + base + "_minimum.tiff";
-    const std::string filename_mean = FLAGS_DEM_output_folder + base + "_mean.tiff";
-    const std::string filename_idw = FLAGS_DEM_output_folder + base + "_idw.tiff";
-    writeDataToDEMGeoTiffColor(ortho_image_maximum, top_left, filename_maximum);
-    writeDataToDEMGeoTiffColor(ortho_image_minimum, top_left, filename_minimum);
-    writeDataToDEMGeoTiffColor(ortho_image_mean, top_left, filename_mean);
-    writeDataToDEMGeoTiffColor(ortho_image_idw, top_left, filename_idw);
-
-//    // [B] USGS DEM ASCII
-//    // TODO(hitimo): Implement ASCII grid.
-//    if (FLAGS_DEM_save_cv_mat_height_map) {
-//      cv::imwrite("/tmp/height_map.jpeg",height_map);
-//      cv::FileStorage file("/tmp/height_map.mat", cv::FileStorage::WRITE);
-//      std::cout << "height_map.cols=" << height_map.cols
-//                << "height_map.rows=" << height_map.rows << std::endl;
-//      file << "height_map" <<  height_map;
-//      file.release();
-//    }
-}
-
-void FwOnlineDigitalElevationMap::writeDataToDEMGeoTiffColor(
-    const cv::Mat& ortho_image, const Eigen::Vector2d& xy, const std::string geotiff_filename) {
-  GDALAllRegister();
-  std::string name = "GTiff";
-  GDALDriver *poDriver;
-  char **papszMetadata;
-  poDriver = GetGDALDriverManager()->GetDriverByName(name.c_str());
-  CHECK(poDriver != NULL);
-
-  papszMetadata = poDriver->GetMetadata();
-  if( CSLFetchBoolean( papszMetadata, GDAL_DCAP_CREATE, FALSE ) ) {
-    VLOG(3) << "Driver " << name.c_str() << " supports Create() method.";
-  }
-  if ( CSLFetchBoolean( papszMetadata, GDAL_DCAP_CREATECOPY, FALSE ) ) {
-    VLOG(3) << "Driver " << name.c_str() << " supports CreateCopy() method.";
-  }
-
-  GDALDataset* poDstDS;
-  char **papszOptions = NULL;
-
-  int height = ortho_image.rows;
-  int width = ortho_image.cols;
-  poDstDS = poDriver->Create(geotiff_filename.c_str(), width, height, 3, GDT_Byte, papszOptions );
-
-  double adfGeoTransform[6] = {xy(0), 1.0, 0.0, xy(1), 0.0, -1.0};
-  OGRSpatialReference oSRS;
-  char *pszSRS_WKT = NULL;
-//  GDALRasterBand *poBand;
-//  GByte abyRaster[512*512];
-  poDstDS->SetGeoTransform(adfGeoTransform );
-
-  std::string projection_cs =
-      "UTM " + std::to_string(FLAGS_DEM_UTM_code) + " (WGS84) in northern hemisphere.";
-  oSRS.SetProjCS(projection_cs.c_str());
-  oSRS.SetWellKnownGeogCS("WGS84");
-  oSRS.SetUTM(FLAGS_DEM_UTM_code, TRUE);
-  oSRS.exportToWkt(&pszSRS_WKT);
-  poDstDS->SetProjection(pszSRS_WKT);
-  CPLFree(pszSRS_WKT);
-
-  int nx_offset = 0;
-  int ny_offset = 0;
-  int nx_size = width;
-  int ny_size = height;
-  int nBufxSize = width;
-  int nBufySize = height;
-  unsigned char pdata[width * height];
-  unsigned char pdata2[width * height];
-  unsigned char pdata3[width * height];
-
-  for (size_t y = 0u; y < static_cast<size_t>(height); ++y) {
-    for (size_t x = 0u; x < static_cast<size_t>(width); ++x) {
-    CHECK(x < static_cast<size_t>(width));
-    CHECK(y < static_cast<size_t>(height));
-    cv::Vec3b tmp = ortho_image.at<cv::Vec3b>(y,x);
-    // TODO(hitimo): Fix color bands.
-    pdata[x + y * width]=tmp(2);
-    pdata2[x + y * width]=tmp(0);
-    pdata3[x + y * width]=tmp(1);
-    }
-  }
-  poDstDS->GetRasterBand(1)->RasterIO(GF_Write, nx_offset, ny_offset, nx_size, ny_size,
-                                      pdata, nBufxSize, nBufySize, GDT_Byte, 0, 0 );
-  poDstDS->GetRasterBand(2)->RasterIO(GF_Write, nx_offset, ny_offset, nx_size, ny_size,
-                                      pdata2, nBufxSize, nBufySize, GDT_Byte, 0, 0 );
-  poDstDS->GetRasterBand(3)->RasterIO(GF_Write, nx_offset, ny_offset, nx_size, ny_size,
-                                      pdata3, nBufxSize, nBufySize, GDT_Byte, 0, 0 );
-  // Once we're done, close properly the dataset.
-  GDALClose( (GDALDatasetH) poDstDS );
-  VLOG(3) << "Closing the dataset.";
 }
