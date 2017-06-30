@@ -63,22 +63,7 @@ void FwOnlineDigitalElevationMap::process(const Aligned<std::vector,
                                           Eigen::Vector3d>::type& pointcloud,
                                           const std::vector<int>& intensities) {
   CHECK(!pointcloud.empty());
-  const int nameWidth = 30;
-    std::cout << "**********************************************************************************************" << std::endl
-              << "Starting Digital Elevation Map generation" << std::endl
-              << std::left << std::setw(nameWidth) << " - Resolution: "
-              << std::left << std::setw(nameWidth) << std::to_string(FLAGS_DEM_resolution) << std::endl
-              << std::left << std::setw(nameWidth) << " - Interp. radius: "
-              << std::left << std::setw(nameWidth) << std::to_string(FLAGS_DEM_interpolation_radius) << std::endl
-              << std::left << std::setw(nameWidth) << " - Filename XYZ: "
-              << std::left << std::setw(nameWidth) << FLAGS_DEM_filename_xyz << std::endl
-              << std::left << std::setw(nameWidth) << " - Output folder: "
-              << std::left << std::setw(nameWidth) << FLAGS_DEM_output_folder << std::endl
-              << std::left << std::setw(nameWidth) << " - Color Palette: "
-              << std::left << std::setw(nameWidth) << std::to_string(FLAGS_DEM_color_palette) << std::endl
-              << std::left << std::setw(nameWidth) << " - UTM code: "
-              << std::left << std::setw(nameWidth) << std::to_string(FLAGS_DEM_UTM_code) << std::endl;
-    std::cout << "**********************************************************************************************" << std::endl;
+
 
     // Insert pointcloud in kdtree.
     PointCloud<double> cloud_kdtree;
@@ -284,5 +269,24 @@ void FwOnlineDigitalElevationMap::process(const Aligned<std::vector,
 //      file << "height_map" <<  height_map;
 //      file.release();
 //    }
+}
+
+void printParams() {
+  const int nameWidth = 30;
+    std::cout << "**********************************************************************************************" << std::endl
+              << "Starting Digital Elevation Map generation" << std::endl
+              << std::left << std::setw(nameWidth) << " - Resolution: "
+              << std::left << std::setw(nameWidth) << std::to_string(FLAGS_DEM_resolution) << std::endl
+              << std::left << std::setw(nameWidth) << " - Interp. radius: "
+              << std::left << std::setw(nameWidth) << std::to_string(FLAGS_DEM_interpolation_radius) << std::endl
+              << std::left << std::setw(nameWidth) << " - Filename XYZ: "
+              << std::left << std::setw(nameWidth) << FLAGS_DEM_filename_xyz << std::endl
+              << std::left << std::setw(nameWidth) << " - Output folder: "
+              << std::left << std::setw(nameWidth) << FLAGS_DEM_output_folder << std::endl
+              << std::left << std::setw(nameWidth) << " - Color Palette: "
+              << std::left << std::setw(nameWidth) << std::to_string(FLAGS_DEM_color_palette) << std::endl
+              << std::left << std::setw(nameWidth) << " - UTM code: "
+              << std::left << std::setw(nameWidth) << std::to_string(FLAGS_DEM_UTM_code) << std::endl;
+    std::cout << "**********************************************************************************************" << std::endl;
 }
 
