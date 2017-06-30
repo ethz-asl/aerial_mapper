@@ -1,7 +1,7 @@
 #include "aerial-mapper-ortho/ortho-forward-homography.h"
 #include <opencv2/highgui/highgui.hpp>
 
-FwOnlineOrthomosaic::FwOnlineOrthomosaic(
+OrthoForwardHomography::OrthoForwardHomography(
     std::string ncameras_yaml_path_filename) {
   prepareBlenderForNextImage();
   loadCameraRig(ncameras_yaml_path_filename);
@@ -29,10 +29,10 @@ FwOnlineOrthomosaic::FwOnlineOrthomosaic(
       image_transport_->advertise("/orthomosaic/undistorted", 1);
 }
 
-void FwOnlineOrthomosaic::loadCameraRig(
+void OrthoForwardHomography::loadCameraRig(
     std::string ncameras_yaml_path_filename) {}
 
-void FwOnlineOrthomosaic::addImage(cv::Mat image_warped_mutable) {
+void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable) {
   if (image_warped_mutable.type() == CV_8U ||
       image_warped_mutable.type() == CV_8UC1) {
     cv::cvtColor(image_warped_mutable, image_warped_mutable, CV_GRAY2RGB);
@@ -68,7 +68,7 @@ void FwOnlineOrthomosaic::addImage(cv::Mat image_warped_mutable) {
   blender_->feed(image_warped_mutable.clone(), mask_image, cv::Point(0, 0));
 }
 
-void FwOnlineOrthomosaic::addImage(cv::Mat image_warped_mutable,
+void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable,
                                    cv::Mat mask_image) {
   if (image_warped_mutable.type() == CV_8U ||
       image_warped_mutable.type() == CV_8UC1) {
@@ -86,7 +86,7 @@ void FwOnlineOrthomosaic::addImage(cv::Mat image_warped_mutable,
   blender_->feed(image_warped_mutable.clone(), mask_image, cv::Point(0, 0));
 }
 
-void FwOnlineOrthomosaic::updateOrthomosaic(const aslam::Transformation& T_G_B,
+void OrthoForwardHomography::updateOrthomosaic(const aslam::Transformation& T_G_B,
                                             const cv::Mat& image) {
   cv::Mat image_undistorted;
   undistorter_->processImage(image, &image_undistorted);
@@ -150,7 +150,7 @@ void FwOnlineOrthomosaic::updateOrthomosaic(const aslam::Transformation& T_G_B,
   cv::imwrite("/tmp/result.jpg", result_);
 }
 
-void FwOnlineOrthomosaic::batch(
+void OrthoForwardHomography::batch(
     std::vector<kindr::minimal::QuatTransformation> T_G_Bs,
     std::vector<cv::Mat> images) {
   const ros::Time time1 = ros::Time::now();
@@ -236,24 +236,24 @@ void FwOnlineOrthomosaic::batch(
   cv::imwrite("/tmp/result.jpg", result_);
 }
 
-void FwOnlineOrthomosaic::showOrthomosaicCvWindow(cv::Mat current_mosaic) {
+void OrthoForwardHomography::showOrthomosaicCvWindow(cv::Mat current_mosaic) {
   current_mosaic.convertTo(current_mosaic, (current_mosaic.type() / 8) * 8);
   cv::imshow("Result", current_mosaic);
   cv::waitKey(1);
 }
 
-void FwOnlineOrthomosaic::prepareBlenderForNextImage() {
+void OrthoForwardHomography::prepareBlenderForNextImage() {
   blender_ = cv::detail::Blender::createDefault(cv::detail::Blender::FEATHER);
   cv::Rect rect(cv::Point(0, 0), cv::Point(1000, 1000));
   blender_->prepare(rect);
 }
 
-void FwOnlineOrthomosaic::showUndistortedCvWindow(cv::Mat image_undistorted) {
+void OrthoForwardHomography::showUndistortedCvWindow(cv::Mat image_undistorted) {
   cv::imshow("Undistorted image", image_undistorted);
   cv::waitKey(1);
 }
 
-void FwOnlineOrthomosaic::publishOrthomosaic(cv::Mat image) {
+void OrthoForwardHomography::publishOrthomosaic(cv::Mat image) {
   // image.convertTo(image, (image.type() / 8) * 8);
   sensor_msgs::Image msg;
   msg.header.stamp = ros::Time::now();
@@ -265,7 +265,7 @@ void FwOnlineOrthomosaic::publishOrthomosaic(cv::Mat image) {
   //  cv::waitKey(1);
 }
 
-void FwOnlineOrthomosaic::publishUndistortedImage(cv::Mat image) {
+void OrthoForwardHomography::publishUndistortedImage(cv::Mat image) {
   sensor_msgs::Image msg;
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
