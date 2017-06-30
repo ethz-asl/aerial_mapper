@@ -380,6 +380,36 @@ void FwOnlineDigitalElevationMap::writeDataToDEMGeoTiffColor(
   VLOG(3) << "Closing the dataset.";
 }
 
+void FwOnlineDigitalElevationMap::loadPointcloud(
+    const sensor_msgs::PointCloud2ConstPtr& cloud_msg,
+    const Eigen::Vector3d& origin,
+    Aligned<std::vector, Eigen::Vector3d>::type* pointcloud) {
+  CHECK_NOTNULL(pointcloud);
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::fromROSMsg(*cloud_msg, cloud);
+  for (size_t i = 0u; i < cloud.size(); ++i) {
+    pointcloud->emplace_back(
+        Eigen::Vector3d(cloud[i].x, cloud[i].y, cloud[i].z) + origin);
+  }
+  VLOG(3) << "Pointcloud size: " << pointcloud->size();
+}
+
+void FwOnlineDigitalElevationMap::loadPointcloud(
+    const std::string& filename,
+    Aligned<std::vector, Eigen::Vector3d>::type* pointcloud) {
+  VLOG(3) << "Loading pointcloud from file: " << filename;
+  std::ifstream infile(filename);
+  if (infile) {
+    while (!infile.eof()) {
+      Eigen::Vector3d point;
+      infile >> point(0) >> point(1) >> point(2);
+      pointcloud->emplace_back(point);
+    }
+  }
+  VLOG(3) << "Pointcloud size: " << pointcloud->size();
+}
+
+
 #endif
 
 }  // namespace io
