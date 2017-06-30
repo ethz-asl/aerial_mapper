@@ -7,7 +7,6 @@ catkin_simple(ALL_DEPS_REQUIRED)
 find_package( GDAL )
 include_directories( ${GDAL_INCLUDE_DIRS} )
 
-
 #############
 # LIBRARIES #
 #############
@@ -20,6 +19,8 @@ SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} 
 
 cs_add_library(${PROJECT_NAME} 
   src/ortho-forward-homography.cc
+  src/ortho-backward-grid.cc
+  src/ortho-from-pcl.cc
 )
 
 #############
