@@ -6,13 +6,11 @@
  */
 
 // SYSTEM
-#include <fstream>
 #include <memory>
 
 // NON-SYSTEM
 #include <aerial-mapper-io/aerial-mapper-io.h>
 #include <aerial-mapper-ortho/ortho-forward-homography.h>
-#include <aerial-mapper-ros/ortho/ros-callback-sync.h>
 #include <gflags/gflags.h>
 
 DEFINE_string(
@@ -26,7 +24,7 @@ int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
-  ros::init(argc, argv, "online_orthomosaic_node");
+  ros::init(argc, argv, "ortho_forward_homography");
 
   const std::string& base = FLAGS_data_directory;
   const std::string& filename_camera_rig = FLAGS_filename_camera_rig;
@@ -45,7 +43,7 @@ int main(int argc, char** argv) {
   io::PoseFormat pose_format = io::PoseFormat::Standard;
   io_handler.loadPosesFromFile(pose_format, filename_poses, &T_G_Bs);
 
-  // Load images file.
+  // Load images from file.
   const std::string& filename_images = base + FLAGS_prefix_images;
   size_t num_poses = T_G_Bs.size();
   Images images;
