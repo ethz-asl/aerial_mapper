@@ -1,5 +1,17 @@
+/*
+ *    Filename: ortho-forward-homography.cc
+ *  Created on: Jun 25, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
+
+// HEADER
 #include "aerial-mapper-ortho/ortho-forward-homography.h"
+
+// NON-SYSTEM
 #include <opencv2/highgui/highgui.hpp>
+
+namespace ortho {
 
 OrthoForwardHomography::OrthoForwardHomography(
     std::string ncameras_yaml_path_filename) {
@@ -15,8 +27,9 @@ OrthoForwardHomography::OrthoForwardHomography(
   border_keypoints_.col(0) = Eigen::Vector2d(0.0, 0.0);
   border_keypoints_.col(1) =
       Eigen::Vector2d(static_cast<double>(width - 1u), 0.0);
-  border_keypoints_.col(2) = Eigen::Vector2d(static_cast<double>(width - 1u),
-                                             static_cast<double>(height - 1u));
+  border_keypoints_.col(2) =
+      Eigen::Vector2d(static_cast<double>(width - 1u),
+                      static_cast<double>(height - 1u));
   border_keypoints_.col(3) =
       Eigen::Vector2d(0.0, static_cast<double>(height - 1u));
 
@@ -40,31 +53,12 @@ void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable) {
   if (image_warped_mutable.type() != CV_16SC3) {
     image_warped_mutable.convertTo(image_warped_mutable, CV_16SC3);
   }
-
-  //  std::cout << result_mask_.size() << ", " << image_warped_mutable.size() <<
-  //  std::endl;
-
-  //  std::cout << result_mask_.type() << ", " << result_mask_.type() <<
-  //  std::endl;
-  //  cv::Mat mask_image;
-  //  if (result_mask_.size() == image_warped_mutable.size()) {
-  //    cv::Mat matD;
-  //    cv::add(result_mask_, image_warped_mutable, matD);
-  //   mask_image = matD > 10.0;
-  //  } else {
   cv::Mat mask_image = (image_warped_mutable) > 0.1;
-  //  }
-
   cv::cvtColor(mask_image, mask_image, CV_RGB2GRAY);
 
-  //  if (result_mask_.size() == image_warped_mutable.size()) {
-  //    mask_image = mask_image + result_mask_;
-  //  }
   mask_image.convertTo(mask_image, CV_8U);
   CHECK(mask_image.type() == CV_8U);
   CHECK(blender_ != nullptr);
-  //  cv::imshow("mask_image",mask_image);
-  //  cv::waitKey(0);
   blender_->feed(image_warped_mutable.clone(), mask_image, cv::Point(0, 0));
 }
 
@@ -80,14 +74,11 @@ void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable,
   CHECK(mask_image.type() == CV_8U);
   CHECK(blender_ != nullptr);
 
-  //  cv::imshow("mask_image2",mask_image);
-  //  cv::waitKey(0);
-
   blender_->feed(image_warped_mutable.clone(), mask_image, cv::Point(0, 0));
 }
 
-void OrthoForwardHomography::updateOrthomosaic(const aslam::Transformation& T_G_B,
-                                            const cv::Mat& image) {
+void OrthoForwardHomography::updateOrthomosaic(
+    const aslam::Transformation& T_G_B, const cv::Mat& image) {
   cv::Mat image_undistorted;
   undistorter_->processImage(image, &image_undistorted);
   publishUndistortedImage(image_undistorted);
@@ -105,7 +96,8 @@ void OrthoForwardHomography::updateOrthomosaic(const aslam::Transformation& T_G_
   for (int border_pixel_index = 0;
        border_pixel_index < border_keypoints_.cols(); ++border_pixel_index) {
     Eigen::Vector3d C_ray;
-    const Eigen::Vector2d& keypoint = border_keypoints_.col(border_pixel_index);
+    const Eigen::Vector2d& keypoint =
+        border_keypoints_.col(border_pixel_index);
     ncameras_->getCameraShared(kFrameIdx)->backProject3(keypoint, &C_ray);
     const double scale = -(T_G_C.getPosition()(2) - 414) /
                          (T_G_C.getRotationMatrix() * C_ray)(2);
@@ -135,15 +127,8 @@ void OrthoForwardHomography::updateOrthomosaic(const aslam::Transformation& T_G_
                       perspective_transformation_matrix, cv::Size(1000, 1000),
                       cv::INTER_NEAREST, cv::BORDER_CONSTANT);
   addImage(image_warped);
-  //  std::cout << "blender_->blend start" << std::endl;
   blender_->blend(result_, result_mask_);
-  //  std::cout << "blender_->blend done" << std::endl;
-  //  cv::imshow("result_mask",result_mask_);
-  //  cv::waitKey(0);
-  //  std::cout << "prepareBlenderForNextImage start" << std::endl;
   prepareBlenderForNextImage();
-  //  std::cout << "prepareBlenderForNextImage done" << std::endl;
-  //  cv::waitKey(0);
   addImage(result_, result_mask_);
   showOrthomosaicCvWindow(result_);
   publishOrthomosaic(result_);
@@ -157,13 +142,13 @@ void OrthoForwardHomography::batch(
   for (size_t i = 0u; i < images.size(); ++i) {
     cv::Mat image_undistorted;
     undistorter_->processImage(images[i], &image_undistorted);
-    // publishUndistortedImage(image_undistorted);
 
     const aslam::Transformation& T_G_C =
         T_G_Bs[i] * ncameras_->get_T_C_B(kFrameIdx).inverse();
     std::vector<cv::Point2f> ground_points, image_points;
     for (int border_pixel_index = 0;
-         border_pixel_index < border_keypoints_.cols(); ++border_pixel_index) {
+         border_pixel_index < border_keypoints_.cols();
+         ++border_pixel_index) {
       Eigen::Vector3d C_ray;
       const Eigen::Vector2d& keypoint =
           border_keypoints_.col(border_pixel_index);
@@ -185,36 +170,20 @@ void OrthoForwardHomography::batch(
         cv::getPerspectiveTransform(image_points, ground_points);
     cv::Mat image_warped;
     cv::warpPerspective(image_undistorted, image_warped,
-                        perspective_transformation_matrix, cv::Size(1000, 1000),
+                        perspective_transformation_matrix,
+                        cv::Size(1000, 1000),
                         cv::INTER_NEAREST, cv::BORDER_CONSTANT);
     addImage(image_warped);
   }
-
-  //  cv::Mat result, resultMask;
-  //    blender->blend(result, resultMask);
-  //    result.convertTo(result, (result.type() / 8) * 8);
-  //  cv::imshow("Result", result);
 
   blender_->blend(result_, result_mask_);
   const ros::Time time2 = ros::Time::now();
   const ros::Duration& d1 = time2 - time1;
   std::cout << d1 << std::endl;
 
-  //  prepareBlenderForNextImage();
-  //  addImage(result_, result_mask_);
   showOrthomosaicCvWindow(result_);
   publishOrthomosaic(result_);
 
-  //  cv::Mat mask;// = result_;
-  //  cv::Mat m;
-  //  std::cout << "mask.type = " << mask.type() << std::endl;
-  //  mask.convertTo(m,CV_8U);
-  //  std::cout << "mask.type = " << mask.type() << std::endl;
-  //  // compute inverse thresholding (dark areas become "active" pixel in the
-  //  mask) with OTSU thresholding:
-  //  double grayThres = cv::threshold(result_, m, 0, 255, CV_THRESH_BINARY);
-  //  std::cout << "mask.type = " << mask.type() << std::endl;
-  //  // color all masked pixel red:
   cv::Mat input = result_;
   cv::Mat m = (result_) > 0;
   m = 255 - m;
@@ -227,12 +196,7 @@ void OrthoForwardHomography::batch(
   std::cout << "input.type = " << input.type() << std::endl;
   input.setTo(255, m);
 
-  // compute median filter to remove the whitish black parts and darker white
-  // parts
-
-  // cv::imshow("input", input);
   cv::waitKey(0);
-
   cv::imwrite("/tmp/result.jpg", result_);
 }
 
@@ -254,15 +218,12 @@ void OrthoForwardHomography::showUndistortedCvWindow(cv::Mat image_undistorted) 
 }
 
 void OrthoForwardHomography::publishOrthomosaic(cv::Mat image) {
-  // image.convertTo(image, (image.type() / 8) * 8);
   sensor_msgs::Image msg;
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
   sensor_msgs::fillImage(msg, sensor_msgs::image_encodings::MONO8, image.rows,
                          image.cols, image.cols, image.data);
   pub_orthomosaic_image_.publish(msg);
-  //  cv::imshow("Result", image);
-  //  cv::waitKey(1);
 }
 
 void OrthoForwardHomography::publishUndistortedImage(cv::Mat image) {
@@ -273,3 +234,5 @@ void OrthoForwardHomography::publishUndistortedImage(cv::Mat image) {
                          image.cols, image.cols, image.data);
   pub_undistorted_image_.publish(msg);
 }
+
+} // namespace ortho
