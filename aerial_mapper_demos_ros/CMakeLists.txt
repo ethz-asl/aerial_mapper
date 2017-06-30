@@ -15,7 +15,7 @@ add_definitions(-std=c++11)
 #    src/fw-online-orthomosaic.cc)
 
 cs_add_executable(${PROJECT_NAME}_forward_file
-    src/ortho/main_from_file.cc)
+    src/ortho/main-ortho-forward-homography)
 
 #cs_add_executable(${PROJECT_NAME}_backward_vimap
 #    src/node-backprojection.cc

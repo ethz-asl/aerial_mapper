@@ -10,18 +10,19 @@
 #include <memory>
 
 // NON-SYSTEM
-#include <gflags/gflags.h>
+#include <aerial-mapper-io/aerial-mapper-io.h>
 #include <aerial-mapper-ortho/ortho-forward-homography.h>
 #include <aerial-mapper-ros/ortho/ros-callback-sync.h>
-#include <aerial-mapper-io/aerial-mapper-io.h>
+#include <gflags/gflags.h>
 
-
-DEFINE_string(data_directory, "/media/timo/scnd/catkin_ws_aerial_mapper/src/aerial_mapper/data/", "");
+DEFINE_string(
+    data_directory,
+    "/media/timo/scnd/catkin_ws_aerial_mapper/src/aerial_mapper/data/", "");
 DEFINE_string(filename_poses, "opt_poses.txt", "");
 DEFINE_string(prefix_images, "opt_image", "");
 DEFINE_string(filename_camera_rig, "camera_fixed_wing.yaml", "");
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
@@ -40,15 +41,13 @@ int main(int argc, char **argv) {
   const std::string& filename_poses = base + filename_poses;
   io::AerialMapperIO io_handler;
   io::PoseFormat pose_format = io::PoseFormat::Standard;
-  io_handler.loadPosesFromFile(pose_format, filename_poses,
-                               &T_G_Bs);
+  io_handler.loadPosesFromFile(pose_format, filename_poses, &T_G_Bs);
 
   // Load images.
   const std::string& filename_images = base + FLAGS_prefix_images;
   size_t num_poses = T_G_Bs.size();
   Images images;
   io_handler.loadImagesFromFile(filename_images, num_poses, &images);
-
 
   enum Mode { Incremental, Batch };
   Mode mode;
