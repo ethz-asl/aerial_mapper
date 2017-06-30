@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>aerial_mapping_utils</name>
+  <name>aerial_mapper_utils</name>
   <version>0.0.1</version>
-  <description>aerial_mapping_utils</description>
+  <description>aerial_mapper_utils</description>
   <maintainer email="hitimo@ethz.ch">hitimo</maintainer>
   <license>ASL</license>
   
