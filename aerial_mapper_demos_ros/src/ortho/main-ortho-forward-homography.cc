@@ -31,15 +31,17 @@ int main(int argc, char** argv) {
   const std::string& base = FLAGS_data_directory;
   const std::string& filename_camera_rig = FLAGS_filename_camera_rig;
 
-  std::unique_ptr<FwOnlineOrthomosaic> online_orthomosaic_;
-  std::string ncameras_yaml_path_filename = base + filename_camera_rig;
-  online_orthomosaic_.reset(
-      new FwOnlineOrthomosaic(ncameras_yaml_path_filename));
+  // Load camera rig.
+  io::AerialMapperIO io_handler;
+  std::shared_ptr<aslam::NCamera> ncameras;
+  const std::string& filename_camera_rig_yaml = base + filename_camera_rig;
+  io_handler.loadCameraRigFromFile(filename_camera_rig_yaml, ncameras);
+  OrthoForwardHomography mosaic(ncameras);
 
   // Load poses.
   Poses T_G_Bs;
   const std::string& filename_poses = base + filename_poses;
-  io::AerialMapperIO io_handler;
+
   io::PoseFormat pose_format = io::PoseFormat::Standard;
   io_handler.loadPosesFromFile(pose_format, filename_poses, &T_G_Bs);
 
@@ -53,15 +55,17 @@ int main(int argc, char** argv) {
   Mode mode;
   mode = Mode::Batch;
 
+  // Construct the mosaic by computing the homography that projects
+  // the image onto the ground plane.
   if (mode == Mode::Incremental) {
     for (size_t i = 0u; i < images.size(); ++i) {
       std::cout << i << "/" << images.size() << std::endl;
       cv::Mat image = images[i];
       const Pose& T_G_B = T_G_Bs[i];
-      online_orthomosaic_->updateOrthomosaic(T_G_B, image);
+      mosaic->updateOrthomosaic(T_G_B, image);
     }
   } else if (mode == Mode::Batch) {
-    online_orthomosaic_->batch(T_G_Bs, images);
+    mosaic->batch(T_G_Bs, images);
   }
 
   LOG(INFO) << "Finished!";
