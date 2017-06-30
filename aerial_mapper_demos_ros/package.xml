@@ -12,5 +12,6 @@
   
   <depend>aerial_mapper_ortho</depend>
   <depend>aerial_mapper_ros</depend>
+  <depend>aerial_mapper_io</depend>
 
 </package>

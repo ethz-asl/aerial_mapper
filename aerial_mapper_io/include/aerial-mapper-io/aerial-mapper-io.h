@@ -13,12 +13,16 @@
 #include <Eigen/Core>
 #include <opencv2/highgui/highgui.hpp>
 
+
+
+typedef kindr::minimal::QuatTransformation Pose;
+typedef std::vector<Pose> Poses;
+typedef std::vector<cv::Mat> Images;
+
+
 namespace io {
 
 enum PoseFormat { Standard, COLMAP, PIX4D };
-
-typedef std::vector<kindr::minimal::QuatTransformation> Poses;
-typedef std::vector<cv::Mat> Images;
 
 class AerialMapperIO {
  public:
