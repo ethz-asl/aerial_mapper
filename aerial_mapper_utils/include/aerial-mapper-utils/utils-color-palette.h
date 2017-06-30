@@ -1,6 +1,5 @@
 /*
- * utils-color-palette.h
- *
+ *    Filename: utils-color-palette.h
  *  Created on: Jun 25, 2017
  *      Author: Timo Hinzmann
  *   Institute: ETH Zurich, Autonomous Systems Lab
