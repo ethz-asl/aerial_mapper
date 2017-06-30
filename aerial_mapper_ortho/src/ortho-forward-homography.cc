@@ -1,4 +1,4 @@
-#include "aerial-mapper-ortho/fw-online-orthomosaic.h"
+#include "aerial-mapper-ortho/ortho-forward-homography.h"
 #include <opencv2/highgui/highgui.hpp>
 
 FwOnlineOrthomosaic::FwOnlineOrthomosaic(std::string ncameras_yaml_path_filename) {

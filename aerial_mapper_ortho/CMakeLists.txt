@@ -19,7 +19,7 @@ endif()
 SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} -lpthread")
 
 cs_add_library(${PROJECT_NAME} 
-  src/fw-online-orthomosaic.cc
+  src/ortho-forward-homography.cc
 )
 
 #############
