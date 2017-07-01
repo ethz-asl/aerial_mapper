@@ -1,2 +1,2 @@
 # aerial_mapper_demos_ros
-Sample executables that requires ROS.
+Sample executables that require ROS.
