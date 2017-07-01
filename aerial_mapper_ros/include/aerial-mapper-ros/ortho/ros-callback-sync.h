@@ -16,8 +16,8 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 
-#include <aerial-mapper-ortho/fw-online-orthomosaic.h>
-
+#include <aerial-mapper-ortho/ortho-forward-homography.h>
+#ifdef asdf
 class RosCallbackSync {
 public:
   RosCallbackSync()
@@ -26,6 +26,7 @@ public:
       sub_image_sync_(node_handle_, "/fw_image", 1),
       sync_(sub_image_sync_, sub_pose_sync_, 100) {
     std::string ncameras_yaml_path_filename = "/home/timo/calibration/ncameras_gazebo_techpod.yaml";
+
     online_orthomosaic_.reset(new FwOnlineOrthomosaic(ncameras_yaml_path_filename));
   }
 
@@ -69,5 +70,5 @@ public:
   message_filters::TimeSynchronizer<sensor_msgs::Image, geometry_msgs::PoseStamped> sync_;
   std::unique_ptr<FwOnlineOrthomosaic> online_orthomosaic_;
 };
-
+#endif
 #endif
