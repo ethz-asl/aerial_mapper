@@ -10,6 +10,10 @@
 
 #define DEG2RAD 0.01745329
 
+// SYSTEM
+#include <math.h>
+#include <vector>
+
 struct color {
   unsigned char rgbBlue;
   unsigned char rgbGreen;
@@ -95,7 +99,9 @@ static palette GetPalette(palette::palettetypes pal) {
        * Inversion palette.
        */
       for (i = 0; i < 256; i++) {
-        ret.colors[i].rgbBlue = ret.colors[i].rgbGreen = ret.colors[i].rgbRed =
+        ret.colors[i].rgbBlue =
+            ret.colors[i].rgbGreen =
+            ret.colors[i].rgbRed =
             255 - i;
       }
       break;
@@ -207,4 +213,4 @@ static palette GetPalette(palette::palettetypes pal) {
   return ret;
 }
 
-#endif
+#endif // UTILS_COLOR_PALETTE_H_

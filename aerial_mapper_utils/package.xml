@@ -9,6 +9,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
+<depend>aerial_mapper_thirdparty</depend>
 <depend>aslam_cv_cameras</depend>
 <depend>aslam_cv_common</depend>
 <depend>aslam_cv_frames</depend>
@@ -22,9 +23,8 @@
 <depend>minkindr_conversions</depend>
 <depend>mono_dense_reconstruction</depend>
 <depend>mono_dense_reconstruction_nodes</depend>
-<depend>multiagent_mapping_common</depend>
-<depend>multiagent_mapping_common_private</depend>
-<depend>opencv2_catkin</depend>
+<depend>maplab_common</depend>
+<depend>opencv3_catkin</depend>
 <depend>rosbag</depend>
 <depend>roscpp</depend>
 <depend>sensor_msgs</depend>
