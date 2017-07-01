@@ -1,23 +1,24 @@
 # aerial-mapper
 
 ### Overview
-- **aerial_mapper_ros: ROS input/output wrapper**
-- **aerial_mapper_grid_map: grid_map wrapper**
-- **aerial_mapper_demos**
-- **aerial_mapper_io: Standard input/output handler**
-   - Load from PIX4D
-   - Load from COLMAP
-   - Save to GeoTiff
-- **aerial_mapper_ortho: (Ortho-)Mosaic Generation**
-   - Input: Raw images, camera intrinsics, camera poses 
-   - Output: (Ortho-)Mosaic as ros message (grid_map) or GeoTiff
-   - Available methods:
-      - Homography-based mosaic (forward projection)
-      - Grid-based orthomosaic (backward projection)
-      - Incremental grid-based orthomosaic (backward projection)
-- **aerial_mapper_dsm: Digitial Surface Map/Model Generation**
-   - Input: 3D-pointcloud
-   - Output: Elevation Map as ros message (grid_map) or GeoTiff
+- Load camera poses from different formats (PIX4D, COLMAP, etc.)
+- Generates a dense point cloud from raw images, camera poses and camera intriniscs
+- Generates Digital Surface Models (DSMs) from raw point clouds and exports e.g. to GeoTiff
+- Generates (ortho-)mosaics from raw images, camera poses and camera intrinsics
+
+
+### Package Overview
+- [**aerial_mapper:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper) Meta package
+- [**aerial_mapper_demos_no_ros:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_demos_no_ros) Sample executables that do not require ROS.
+- [**aerial_mapper_demos_ros:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_demos_ros) Sample executables that require ROS.
+- [**aerial_mapper_dense_pcl:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_dense_pcl) Dense point cloud generation using planar rectification.
+- [**aerial_mapper_dsm:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_dsm) Digitial Surface Map/Model generation.
+- [**aerial_mapper_grid_map:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_grid_map) Wrapper package for grid_map.
+- [**aerial_mapper_io:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_io) Input/Output handler that reads/writes camera poses, images, camera intrinsics, point clouds, GeoTiffs etc.
+- [**aerial_mapper_ortho:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_ortho) (Ortho-)Mosaic generation.
+- [**aerial_mapper_ros:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_ros) Wrapper for ROS-dependent methods.
+- [**aerial_mapper_thirdparty:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_thirdparty) Package ontaining thirdparty code.
+- [**aerial_mapper_utils:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_utils) Package for common utility functions.
 
 <hr>
 
