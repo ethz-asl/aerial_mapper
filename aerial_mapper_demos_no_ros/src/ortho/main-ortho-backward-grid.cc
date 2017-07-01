@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 
   // Construct the orthomosaic by back-projecting cell center into image
   // and querring pixel intensity in image.
-  ortho::OrthoBackwardGrid mosaic(ncameras, origin, T_G_Bs, images);
+  ortho::OrthoBackwardGrid mosaic(ncameras, T_G_Bs, images, origin);
 
   return 0;
 }

@@ -10,4 +10,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
+  <depend>aerial_mapper_dense_pcl</depend>
+  <depend>aerial_mapper_dsm</depend>
+  <depend>aerial_mapper_ortho</depend>
 </package>

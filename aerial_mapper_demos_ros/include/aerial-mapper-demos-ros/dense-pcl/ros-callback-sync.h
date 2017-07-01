@@ -1,5 +1,5 @@
-#ifndef ROS_CALLBACK_SYNC_H_
-#define ROS_CALLBACK_SYNC_H_
+#ifndef DENSE_PCL_ROS_CALLBACK_SYNC_H_
+#define DENSE_PCL_ROS_CALLBACK_SYNC_H_
 
 #include <algorithm>
 #include <memory>
@@ -11,10 +11,12 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <minkindr_conversions/kindr_msg.h>
-#include <multiagent-mapping-common/buffered-lookup.h>
+#include <maplab-common/buffered-lookup.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
+
+#ifdef asdf
 
 #include "fw_online_planar_rectification_node/fw-online-planar-rectification.h"
 
@@ -74,5 +76,5 @@ public:
   std::unique_ptr<FwOnlinePlanarRectification> online_planar_rectification_;
   size_t skip_;
 };
-
+#endif
 #endif

@@ -1,4 +1,4 @@
-#include "fw_online_planar_rectification_node/fw-online-planar-rectification.h"
+#include "aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h"
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_types.h>
 #include <pcl/PCLPointCloud2.h>

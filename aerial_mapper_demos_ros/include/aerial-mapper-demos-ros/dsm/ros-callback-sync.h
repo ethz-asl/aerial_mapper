@@ -6,8 +6,8 @@
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#ifndef ROS_CALLBACK_SYNC_H_
-#define ROS_CALLBACK_SYNC_H_
+#ifndef DSM_ROS_CALLBACK_SYNC_H_
+#define DSM_ROS_CALLBACK_SYNC_H_
 
 #include <algorithm>
 #include <memory>
@@ -19,7 +19,7 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <minkindr_conversions/kindr_msg.h>
-#include <multiagent-mapping-common/buffered-lookup.h>
+#include <maplab-common/buffered-lookup.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>

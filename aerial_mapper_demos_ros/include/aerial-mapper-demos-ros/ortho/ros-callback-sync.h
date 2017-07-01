@@ -1,5 +1,5 @@
-#ifndef ROS_CALLBACK_SYNC_H_
-#define ROS_CALLBACK_SYNC_H_
+#ifndef ORTHO_ROS_CALLBACK_SYNC_H_
+#define ORTHO_ROS_CALLBACK_SYNC_H_
 
 #include <algorithm>
 #include <memory>

@@ -12,6 +12,8 @@
   
   <depend>aerial_mapper_io</depend>
   <depend>aerial_mapper_ortho</depend>
+  <depend>aerial_mapper_dsm</depend>
+  <depend>aerial_mapper_dense_pcl</depend>
   <depend>aerial_mapper_ros</depend>
   <depend>aerial_mapper_utils</depend>
   <depend>aerial_mapper_thirdparty</depend>

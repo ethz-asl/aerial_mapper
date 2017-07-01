@@ -1,5 +1,6 @@
-#include "fw_online_digital_elevation_map_node/fw-digital-elevation-map.h"
+#include <aerial-mapper-dsm/dsm.h>
 
+#ifdef asdf
 #include <memory>
 
 #include <gflags/gflags.h>
@@ -46,5 +47,11 @@ int main(int argc, char **argv) {
   sub = nh.subscribe ("/planar_rectification/point_cloud", 1, cloud_callback);
   ros::spin();
 
+  return 0;
+}
+
+#endif
+
+int main() {
   return 0;
 }

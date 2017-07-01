@@ -13,16 +13,16 @@
 #include <aslam/pipeline/undistorter.h>
 #include <aslam/pipeline/undistorter-mapped.h>
 
-DECLARE_string(orthomosaic_filename_poses);
-DECLARE_string(orthomosaic_image_directory);
-DECLARE_double(orthomosaic_easting_min);
-DECLARE_double(orthomosaic_northing_min);
-DECLARE_double(orthomosaic_easting_max);
-DECLARE_double(orthomosaic_northing_max);
-DECLARE_int32(orthomosaic_UTM_code);
-DECLARE_double(orthomosaic_resolution);
-DECLARE_string(orthomosaic_camera_calibration_yaml);
-DECLARE_string(orthomosaic_filename_height_map);
+//DECLARE_string(orthomosaic_filename_poses);
+//DECLARE_string(orthomosaic_image_directory);
+//DECLARE_double(orthomosaic_easting_min);
+//DECLARE_double(orthomosaic_northing_min);
+//DECLARE_double(orthomosaic_easting_max);
+//DECLARE_double(orthomosaic_northing_max);
+//DECLARE_int32(orthomosaic_UTM_code);
+//DECLARE_double(orthomosaic_resolution);
+//DECLARE_string(orthomosaic_camera_calibration_yaml);
+//DECLARE_string(orthomosaic_filename_height_map);
 
 namespace ortho {
 
@@ -70,16 +70,18 @@ void OrthoBackwardGrid::processBatch(const Poses& T_G_Cs,
 
   // Define the grid.
   const Eigen::Vector2d bottom_left = Eigen::Vector2d(
-      FLAGS_orthomosaic_easting_min, FLAGS_orthomosaic_northing_min);
+      settings_.orthomosaic_easting_min,
+        settings_.orthomosaic_northing_min);
   const Eigen::Vector2d top_right = Eigen::Vector2d(
-      FLAGS_orthomosaic_easting_max, FLAGS_orthomosaic_northing_max);
+      settings_.orthomosaic_easting_max,
+        settings_.orthomosaic_northing_max);
   const size_t width_east = std::fabs(bottom_left(0) - top_right(0));
   const size_t height_north = std::fabs(bottom_left(1) - top_right(1));
   const Eigen::Vector2d top_left =
       bottom_left + Eigen::Vector2d(0.0, height_north);
 
   // Iterate over all cells.
-  const double d = static_cast<double>(FLAGS_orthomosaic_resolution);
+  const double d = static_cast<double>(settings_.orthomosaic_resolution);
   const Eigen::Vector2d& a = Eigen::Vector2d(0.5, -0.5) / d;
   const Eigen::Vector2d& b = a + top_left;
   cv::Mat orthomosaic(height_north * d, width_east * d, CV_8UC3,
@@ -165,9 +167,11 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
 
   // Define the grid.
   const Eigen::Vector2d bottom_left = Eigen::Vector2d(
-      FLAGS_orthomosaic_easting_min, FLAGS_orthomosaic_northing_min);
+      settings_.orthomosaic_easting_min,
+        settings_.orthomosaic_northing_min);
   const Eigen::Vector2d top_right = Eigen::Vector2d(
-      FLAGS_orthomosaic_easting_max, FLAGS_orthomosaic_northing_max);
+      settings_.orthomosaic_easting_max,
+        settings_.orthomosaic_northing_max);
   const size_t width_east = std::fabs(bottom_left(0) - top_right(0));
   const size_t height_north = std::fabs(bottom_left(1) - top_right(1));
   const Eigen::Vector2d top_left =
@@ -175,7 +179,7 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
 
   // bool use_digital_elevation_map = false;
   // Iterate over all cells.
-  const double d = static_cast<double>(FLAGS_orthomosaic_resolution);
+  const double d = static_cast<double>(settings_.orthomosaic_resolution);
   const Eigen::Vector2d& a = Eigen::Vector2d(0.5, -0.5) / d;
   const Eigen::Vector2d& b = a + top_left;
   cv::Mat orthomosaic(height_north * d, width_east * d, CV_8UC3,
@@ -288,36 +292,36 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
   cv::imwrite("/tmp/orthomosaic_incremental.jpeg", orthomosaic);
 }
 
-void OrthoBackwardGrid::printParams() {
-  const int nameWidth = 30;
-  std::cout << "***************************************************************"
-               "*******************************" << std::endl
-            << "Starting Orthomosaic image generation" << std::endl
-            << std::left
-            << std::setw(nameWidth) << " - Filename poses: " << std::left
-            << std::setw(nameWidth) << FLAGS_orthomosaic_filename_poses
-            << std::endl << std::left << std::setw(nameWidth)
-            << " - Image directory: " << std::left << std::setw(nameWidth)
-            << FLAGS_orthomosaic_image_directory << std::endl << std::left
-            << std::setw(nameWidth)
-            << " - Filename camera calibration: " << std::left
-            << std::setw(nameWidth)
-            << FLAGS_orthomosaic_camera_calibration_yaml
-            << std::endl << std::left << std::setw(nameWidth)
-            << " - Resolution: " << std::left << std::setw(nameWidth)
-            << FLAGS_orthomosaic_resolution << std::endl << std::left
-            << std::setw(nameWidth) << " - Easting min.: " << std::left
-            << std::setw(nameWidth) << FLAGS_orthomosaic_easting_min
-            << std::endl << std::left << std::setw(nameWidth)
-            << " - Easting max.: " << std::left << std::setw(nameWidth)
-            << FLAGS_orthomosaic_easting_max << std::endl << std::left
-            << std::setw(nameWidth) << " - Northing min.: " << std::left
-            << std::setw(nameWidth) << FLAGS_orthomosaic_northing_min
-            << std::endl << std::left << std::setw(nameWidth)
-            << " - Northing max.: " << std::left << std::setw(nameWidth)
-            << FLAGS_orthomosaic_northing_max << std::endl;
-  std::cout << "***************************************************************"
-               "*******************************" << std::endl;
-}
+//void OrthoBackwardGrid::printParams() {
+//  const int nameWidth = 30;
+//  std::cout << "***************************************************************"
+//               "*******************************" << std::endl
+//            << "Starting Orthomosaic image generation" << std::endl
+//            << std::left
+//            << std::setw(nameWidth) << " - Filename poses: " << std::left
+//            << std::setw(nameWidth) << FLAGS_orthomosaic_filename_poses
+//            << std::endl << std::left << std::setw(nameWidth)
+//            << " - Image directory: " << std::left << std::setw(nameWidth)
+//            << FLAGS_orthomosaic_image_directory << std::endl << std::left
+//            << std::setw(nameWidth)
+//            << " - Filename camera calibration: " << std::left
+//            << std::setw(nameWidth)
+//            << FLAGS_orthomosaic_camera_calibration_yaml
+//            << std::endl << std::left << std::setw(nameWidth)
+//            << " - Resolution: " << std::left << std::setw(nameWidth)
+//            << FLAGS_orthomosaic_resolution << std::endl << std::left
+//            << std::setw(nameWidth) << " - Easting min.: " << std::left
+//            << std::setw(nameWidth) << FLAGS_orthomosaic_easting_min
+//            << std::endl << std::left << std::setw(nameWidth)
+//            << " - Easting max.: " << std::left << std::setw(nameWidth)
+//            << FLAGS_orthomosaic_easting_max << std::endl << std::left
+//            << std::setw(nameWidth) << " - Northing min.: " << std::left
+//            << std::setw(nameWidth) << FLAGS_orthomosaic_northing_min
+//            << std::endl << std::left << std::setw(nameWidth)
+//            << " - Northing max.: " << std::left << std::setw(nameWidth)
+//            << FLAGS_orthomosaic_northing_max << std::endl;
+//  std::cout << "***************************************************************"
+//               "*******************************" << std::endl;
+//}
 
 }  // namespace ortho

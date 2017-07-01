@@ -1,4 +1,5 @@
-#include "fw_online_planar_rectification_node/ros-callback-sync.h"
+#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
+
 #include <opencv2/core/core.hpp>
 
 int main(int argc, char **argv) {

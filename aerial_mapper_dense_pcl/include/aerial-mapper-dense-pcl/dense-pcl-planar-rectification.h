@@ -9,7 +9,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <Eigen/Dense>
 #include <image_transport/image_transport.h>
-#include "fw_online_planar_rectification_node/Utils.h"
+#include <aerial-mapper-dense-pcl/Utils.h>
 #include <mono_dense_reconstruction_nodes/test/Utils.h>
 #include <mono_dense_reconstruction/PlanarRectification.h>
 #include <mono_dense_reconstruction/Undistorter.h>

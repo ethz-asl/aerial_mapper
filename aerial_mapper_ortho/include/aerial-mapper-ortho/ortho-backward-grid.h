@@ -31,6 +31,15 @@
 
 namespace ortho {
 
+struct SettingsGrid {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  double orthomosaic_easting_min = 0.0;
+  double orthomosaic_northing_min = 0.0;
+  double orthomosaic_easting_max = 0.0;
+  double orthomosaic_northing_max = 0.0;
+  int orthomosaic_resolution = 2;
+};
+
 class OrthoBackwardGrid {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -43,11 +52,12 @@ class OrthoBackwardGrid {
                           const Images& images);
 
  private:
-  void printParams();
+  void printParams() {}
 
   Eigen::Vector3d origin_;
   std::shared_ptr<aslam::NCamera> ncameras_;
   static constexpr size_t kFrameIdx = 0u;
+  SettingsGrid settings_;
 };
 } // namespace ortho
 
