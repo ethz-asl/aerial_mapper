@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fw_online_planar_rectification_node)
+project(aerial_mapper_dense_pcl)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)

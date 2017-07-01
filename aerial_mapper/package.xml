@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>grid_map</name>
-  <version>1.4.2</version>
-  <description>Meta-package for aerial_mapper.</description>
+  <name>aerial_mapper</name>
+  <version>0.0.1</version>
+  <description>aerial_mapper.</description>
   <maintainer email="hitimo@ethz.ch">Timo Hinzmann</maintainer>
-  <license>BSD</license>
   <author email="hitimo@ethz.ch">Timo Hinzmann</author>
+  <license>BSD</license>
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>aerial_mapper_dsm</exec_depend>
   <exec_depend>aerial_mapper_ortho</exec_depend>
