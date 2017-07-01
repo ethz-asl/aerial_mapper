@@ -12,6 +12,7 @@
 #include <memory>
 
 // NON-SYSTEM
+#include <aerial-mapper-io/aerial-mapper-io.h>
 #include <aslam/cameras/camera.h>
 #include <aslam/cameras/camera-pinhole.h>
 #include <aslam/cameras/ncamera.h>
@@ -33,21 +34,21 @@ namespace ortho {
 class OrthoBackwardGrid {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  OrthoBackwardGrid();
   OrthoBackwardGrid(const std::shared_ptr<aslam::NCamera> ncameras,
-                    const Poses& T_G_Bs, const Images& images);
+                    const Poses& T_G_Bs, const Images& images,
+                    const Eigen::Vector3d& origin);
   void processBatch(const Poses& T_G_Cs,
                     const Images& images);
   void processIncremental(const Poses& T_G_Cs,
                           const Images& images);
 
  private:
-  bool withinImageBoxWithBorder(const Eigen::Vector2d& keypoint,
-                                const aslam::Camera& camera);
+  void printParams();
 
+  Eigen::Vector3d origin_;
   std::shared_ptr<aslam::NCamera> ncameras_;
   static constexpr size_t kFrameIdx = 0u;
 };
-}
+} // namespace ortho
 
 #endif  // ORTHO_BACKWARD_GRID_H_

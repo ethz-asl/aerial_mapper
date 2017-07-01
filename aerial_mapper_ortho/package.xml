@@ -10,6 +10,8 @@
   <buildtool_depend>catkin_simple</buildtool_depend>
 
   <depend>aerial_mapper_io</depend>
+  <depend>aerial_mapper_utils</depend>
+  <depend>aerial_mapper_thirdparty</depend>
   <depend>aslam_cv_cameras</depend>
   <depend>aslam_cv_common</depend>
   <depend>aslam_cv_frames</depend>
