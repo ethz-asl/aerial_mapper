@@ -1,24 +1,35 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fw_online_digital_elevation_map_node)
+project(aerial_mapper_dsm)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
-find_package( GDAL )
-include_directories( ${GDAL_INCLUDE_DIRS} )
+#############
+# LIBRARIES #
+#############
+add_definitions(-std=c++11)
+
+if(APPLE)
+  add_definitions(-DGTEST_HAS_TR1_TUPLE=0)
+endif()
+SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} -lpthread")
+
+cs_add_library(${PROJECT_NAME}
+  src/dsm.cc
+)
 
 ############
 # BINARIES #
 ############
-add_definitions(-std=c++11)
+#add_definitions(-std=c++11)
 
-cs_add_executable(DEM_from_rosstream src/DEM_from_rosstream_node.cc src/fw-online-digital-elevation-map.cc)
-#cs_add_executable(DEM_from_vi_map src/DEM_from_vi_map_node.cc src/fw-online-digital-elevation-map.cc)
+#cs_add_executable(DEM_from_rosstream src/DEM_from_rosstream_node.cc src/fw-online-digital-elevation-map.cc)
+##cs_add_executable(DEM_from_vi_map src/DEM_from_vi_map_node.cc src/fw-online-digital-elevation-map.cc)
 
-add_dependencies(DEM_from_rosstream ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-#add_dependencies(DEM_from_vi_map ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-target_link_libraries(DEM_from_rosstream ${catkin_LIBRARIES} ${GDAL_LIBRARY})
-#target_link_libraries(DEM_from_vi_map ${catkin_LIBRARIES})
+#add_dependencies(DEM_from_rosstream ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+##add_dependencies(DEM_from_vi_map ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+#target_link_libraries(DEM_from_rosstream ${catkin_LIBRARIES} ${GDAL_LIBRARY})
+##target_link_libraries(DEM_from_vi_map ${catkin_LIBRARIES})
 
 #############
 # QTCREATOR #

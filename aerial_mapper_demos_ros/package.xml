@@ -10,8 +10,10 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
   
+  <depend>aerial_mapper_io</depend>
   <depend>aerial_mapper_ortho</depend>
   <depend>aerial_mapper_ros</depend>
-  <depend>aerial_mapper_io</depend>
+  <depend>aerial_mapper_utils</depend>
+  <depend>aerial_mapper_thirdparty</depend>
 
 </package>

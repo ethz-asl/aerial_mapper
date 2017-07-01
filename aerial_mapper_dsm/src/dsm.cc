@@ -15,39 +15,16 @@
 #include <pcl/point_types.h>
 #include <pcl_ros/transforms.h>
 
-Dsm::Dsm(const sensor_msgs::PointCloud2ConstPtr& cloud_msg,
-         const Eigen::Vector3d& origin) {
-  Aligned<std::vector, Eigen::Vector3d>::type pointcloud;
-  loadPointcloud(cloud_msg, origin, &pointcloud);
-  process(pointcloud);
-}
+
+namespace dsm {
+
+Dsm::Dsm(const Settings& settings)
+  : settings_(settings) {}
 
 void Dsm::process(
     const Aligned<std::vector, Eigen::Vector3d>::type& pointcloud) {
   CHECK(!pointcloud.empty());
-  const int nameWidth = 30;
-  std::cout << "***************************************************************"
-               "*******************************" << std::endl
-            << "Starting Digital Elevation Map generation" << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Resolution: " << std::left << std::setw(nameWidth)
-            << std::to_string(FLAGS_DEM_resolution) << std::endl << std::left
-            << std::setw(nameWidth) << " - Interp. radius: " << std::left
-            << std::setw(nameWidth)
-            << std::to_string(FLAGS_DEM_interpolation_radius) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Filename XYZ: " << std::left << std::setw(nameWidth)
-            << FLAGS_DEM_filename_xyz << std::endl << std::left
-            << std::setw(nameWidth) << " - Output folder: " << std::left
-            << std::setw(nameWidth) << FLAGS_DEM_output_folder << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Color Palette: " << std::left << std::setw(nameWidth)
-            << std::to_string(FLAGS_DEM_color_palette) << std::endl << std::left
-            << std::setw(nameWidth) << " - UTM code: " << std::left
-            << std::setw(nameWidth) << std::to_string(FLAGS_DEM_UTM_code)
-            << std::endl;
-  std::cout << "***************************************************************"
-               "*******************************" << std::endl;
+  printParams();
 
   // Insert pointcloud in kdtree.
   PointCloud<double> cloud_kdtree;
@@ -59,7 +36,7 @@ void Dsm::process(
   double min_height = std::numeric_limits<double>::max();
   double max_height = std::numeric_limits<double>::min();
 
-  std::cout << "Num points: " << pointcloud.size() << std::endl;
+  LOG(INFO) << "Num points: " << pointcloud.size();
   for (size_t i = 0u; i < pointcloud.size(); ++i) {
     cloud_kdtree.pts[i].x = pointcloud[i](0);
     cloud_kdtree.pts[i].y = pointcloud[i](1);
@@ -101,16 +78,8 @@ void Dsm::process(
   index.buildIndex();
 
   VLOG(100) << "Define the grid.";
-  //    const Eigen::Vector2d bottom_left =
-  //    Eigen::Vector2d(FLAGS_DEM_easting_min,
-  //                                                        FLAGS_DEM_northing_min);
   const Eigen::Vector2d bottom_left = min_xy;
-  // const Eigen::Vector2d bottom_left(-200, -200);
-
-  //    const Eigen::Vector2d top_right = Eigen::Vector2d(FLAGS_DEM_easting_max,
-  //                                                      FLAGS_DEM_northing_max);
   const Eigen::Vector2d top_right = max_xy;
-  // Eigen::Vector2d top_right(200,200);
   const size_t width_east = std::fabs(bottom_left(0) - top_right(0));
   const size_t height_north = std::fabs(bottom_left(1) - top_right(1));
   const Eigen::Vector2d top_left =
@@ -118,11 +87,11 @@ void Dsm::process(
 
   VLOG(100) << "Color palette.";
   palette pal =
-      GetPalette(static_cast<palette::palettetypes>(FLAGS_DEM_color_palette));
+      GetPalette(
+        static_cast<palette::palettetypes>(settings_.color_palette));
 
   VLOG(100) << "Loop over all cells.";
-  bool adaptive_interpolation = true;
-  const double d = static_cast<double>(FLAGS_DEM_resolution);
+  const double d = static_cast<double>(settings_.resolution);
   cv::Mat ortho_image_maximum(height_north * d, width_east * d, CV_8UC3,
                               cv::Scalar(255, 255, 255));
   cv::Mat ortho_image_minimum(height_north * d, width_east * d, CV_8UC3,
@@ -135,40 +104,34 @@ void Dsm::process(
   double height_min = min_height;
   cv::Mat height_map(height_north * d, width_east * d,
                      cv::DataType<double>::type);
-  size_t counter = 0;
   VLOG(100) << "to y: " << static_cast<size_t>(height_north * d);
   VLOG(100) << "to x: " << static_cast<size_t>(width_east * d);
   common::ProgressBar progress_bar(static_cast<size_t>(height_north * d));
   for (size_t y = 0u; y < static_cast<size_t>(height_north * d); ++y) {
-    // VLOG(100) << "y = " << y;
     progress_bar.increment();
     for (size_t x = 0u; x < static_cast<size_t>(width_east * d); ++x) {
-      // VLOG(10000) << "x = " << x;
       CHECK(x < width_east * d);
       CHECK(y < height_north * d);
 
-      // VLOG(200) << "alculate the cell center.";
       const Eigen::Vector2d cell_center =
           top_left +
-          Eigen::Vector2d(static_cast<double>(x), -static_cast<double>(y)) / d +
+          Eigen::Vector2d(static_cast<double>(x),
+                          -static_cast<double>(y)) / d +
           Eigen::Vector2d(0.5, -0.5) / d;
 
       std::vector<std::pair<int, double> > indices_dists;
       nanoflann::RadiusResultSet<double, int> resultSet(
-          FLAGS_DEM_interpolation_radius, indices_dists);
+          settings_.interpolation_radius, indices_dists);
       const double query_pt[3] = {cell_center(0), cell_center(1), 0.0};
       index.findNeighbors(resultSet, query_pt, nanoflann::SearchParams());
 
-      // std::cout << "resultSet.size() = "<< resultSet.size() << std::endl;
-      if (adaptive_interpolation) {
+      if (settings_.adaptive_interpolation) {
         int lambda = 10;
         while (resultSet.size() == 0u) {
           nanoflann::RadiusResultSet<double, int> tmp(
-              lambda * FLAGS_DEM_interpolation_radius, indices_dists);
-          //            resultSet = tmp;
+              lambda * settings_.interpolation_radius, indices_dists);
           index.findNeighbors(tmp, query_pt, nanoflann::SearchParams());
           lambda *= 10;
-          // std::cout << "lambda=" << lambda << std::endl;
         }
       }
 
@@ -263,19 +226,16 @@ void Dsm::process(
         height_map.at<double>(y, x) = mean_height;
 
       } else {
-        ++counter;
         ortho_image_maximum.at<cv::Vec3b>(y, x) =
             ortho_image_minimum.at<cv::Vec3b>(y, x) =
                 ortho_image_mean.at<cv::Vec3b>(y, x) =
-                    ortho_image_idw.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 0);
+                    ortho_image_idw.at<cv::Vec3b>(y, x)
+            = cv::Vec3b(0, 0, 0);
         height_map.at<double>(y, x) = 1.0;
-        //  std::cout << "y/x: " << y << "/" << x << ", mean=" << -1 <<
-        //  std::endl;
       }
     }
   }
-  std::cout << "counter= " << counter << std::endl;
-  if (FLAGS_DEM_show_output) {
+  if (settings_.show_output) {
     cv::imshow("DEM maximum", ortho_image_maximum);
     cv::imshow("DEM minimum", ortho_image_minimum);
     cv::imshow("DEM mean", ortho_image_mean);
@@ -283,3 +243,22 @@ void Dsm::process(
     cv::waitKey(0);
   }
 }
+
+void Dsm::printParams() {
+  static constexpr int nameWidth = 30;
+  std::cout << std::string(50, '*') << std::endl
+            << "Starting Digital Elevation Map generation" << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Resolution: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.resolution) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Interp. radius: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.interpolation_radius) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Color Palette: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.color_palette)
+            << std::endl;
+  std::cout <<std::string(50, '*') << std::endl;
+}
+
+} // namespace dsm
