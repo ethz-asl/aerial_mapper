@@ -38,7 +38,6 @@ int main(int argc, char** argv) {
   const std::string& filename_camera_rig_yaml = base + filename_camera_rig;
   io_handler.loadCameraRigFromFile(filename_camera_rig_yaml, ncameras);
   const Eigen::Vector3d origin(464980, 5.27226e+06, 414.087);
-  ortho::OrthoForwardHomography mosaic(ncameras, origin);
 
   // Load poses from file.
   Poses T_G_Bs;
