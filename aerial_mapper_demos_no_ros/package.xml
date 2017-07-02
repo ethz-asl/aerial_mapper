@@ -12,5 +12,24 @@
 
   <depend>aerial_mapper_dense_pcl</depend>
   <depend>aerial_mapper_dsm</depend>
+  <depend>aerial_mapper_io</depend>
   <depend>aerial_mapper_ortho</depend>
+  <depend>aerial_mapper_utils</depend>
+  <depend>aslam_cv_cameras</depend>
+  <depend>aslam_cv_common</depend>
+  <depend>aslam_cv_frames</depend>
+  <depend>aslam_cv_pipeline</depend>
+  <depend>camera_info_manager</depend>
+  <depend>cmake_modules</depend>
+  <depend>eigen_catkin</depend>
+  <depend>gflags_catkin</depend>
+  <depend>glog_catkin</depend>
+  <depend>image_transport</depend>
+  <depend>maplab_common</depend>
+  <depend>minkindr_conversions</depend>
+  <depend>opencv3_catkin</depend>
+  <depend>pcl_catkin</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+
 </package>

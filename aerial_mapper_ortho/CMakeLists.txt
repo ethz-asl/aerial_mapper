@@ -4,9 +4,6 @@ project(aerial_mapper_ortho)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
-find_package( GDAL )
-include_directories( ${GDAL_INCLUDE_DIRS} )
-
 #############
 # LIBRARIES #
 #############

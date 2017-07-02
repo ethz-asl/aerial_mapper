@@ -9,11 +9,6 @@ catkin_simple(ALL_DEPS_REQUIRED)
 #############
 add_definitions(-std=c++11)
 
-if(APPLE)
-  add_definitions(-DGTEST_HAS_TR1_TUPLE=0)
-endif()
-SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} -lpthread")
-
 cs_add_library(${PROJECT_NAME}
   src/dsm.cc
 )

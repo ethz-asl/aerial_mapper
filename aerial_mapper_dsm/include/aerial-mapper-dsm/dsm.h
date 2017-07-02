@@ -35,7 +35,6 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
 
-
 //DECLARE_string(DEM_filename_xyz);
 //DECLARE_string(DEM_output_folder);
 //DECLARE_double(DEM_interpolation_radius);

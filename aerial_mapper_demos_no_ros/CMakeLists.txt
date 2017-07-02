@@ -9,6 +9,10 @@ catkin_simple(ALL_DEPS_REQUIRED)
 ############
 add_definitions(-std=c++11)
 
+cs_add_library(${PROJECT_NAME}
+  src/dsm/main-dsm-from-file.cc
+)
+
 # ORTHO-MOSAIC: forward/homography
 cs_add_executable(${PROJECT_NAME}_ortho_forward_homography
     src/ortho/main-ortho-forward-homography.cc)
