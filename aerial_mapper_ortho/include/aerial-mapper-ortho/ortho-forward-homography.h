@@ -64,7 +64,7 @@ class OrthoForwardHomography {
   // TODO(hitimo): Move this to dedicated ROS package.
   ros::NodeHandle node_handle_;
   ros::Publisher pub_ground_points_;
-  std::unique_ptr<image_transport::ImageTransport> image_transport_;
+  image_transport::ImageTransport image_transport_;
   image_transport::Publisher pub_undistorted_image_;
   image_transport::Publisher pub_orthomosaic_image_;
 };

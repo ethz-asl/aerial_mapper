@@ -36,8 +36,8 @@ class AerialMapperIO {
   void loadImagesFromFile(const std::string& filename_base,
                           size_t num_poses,
                           Images* images);
-  void loadCameraRigFromFile(const std::string& filename_ncameras_yaml,
-                             std::shared_ptr<aslam::NCamera> ncameras);
+  aslam::NCamera::Ptr loadCameraRigFromFile(
+       const std::string& filename_ncameras_yaml);
 
   void loadPointCloudFromFile(
       const std::string& filename_point_cloud,

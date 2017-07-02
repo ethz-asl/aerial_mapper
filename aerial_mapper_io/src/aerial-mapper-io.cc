@@ -23,19 +23,27 @@ void AerialMapperIO::loadPosesFromFile(const PoseFormat& format,
                                        const std::string& filename,
                                        Poses* T_G_Bs) {
   CHECK(T_G_Bs);
+  CHECK(!filename.empty()) << "Empty filename";
+  LOG(INFO) << "Loading body poses via format: " <<
+               static_cast<int>(format);
   switch (format) {
     case PoseFormat::Standard:
       loadPosesFromFileStandard(filename, T_G_Bs);
+    break;
     case PoseFormat::COLMAP:
       LOG(FATAL) << "Not yet implemented!";
+    break;
     case PoseFormat::PIX4D:
       LOG(FATAL) << "Not yet implemented!";
+    break;
   }
 }
 
-void AerialMapperIO::loadPosesFromFileStandard(const std::string& filename,
-                                               Poses* T_G_Bs) {
+void AerialMapperIO::loadPosesFromFileStandard(
+    const std::string& filename, Poses* T_G_Bs) {
   CHECK(T_G_Bs);
+  CHECK(!filename.empty()) << "Empty filename";
+  LOG(INFO) << "Loading body poses from: " << filename;
   std::ifstream infile(filename);
   double x, y, z, qw, qx, qy, qz;
   while (infile >> x >> y >> z >> qw >> qx >> qy >> qz) {
@@ -51,11 +59,13 @@ void AerialMapperIO::loadPosesFromFileStandard(const std::string& filename,
   LOG(INFO) << "T_G_Bs->size() = " << T_G_Bs->size();
 }
 
-void AerialMapperIO::loadImagesFromFile(const std::string& filename_base,
-                                        size_t num_poses, Images* images) {
+void AerialMapperIO::loadImagesFromFile(
+    const std::string& filename_base, size_t num_poses, Images* images) {
   CHECK(images);
+  LOG(INFO) << "Loading images from directory+prefix: " << filename_base;
   for (size_t i = 0u; i < num_poses; ++i) {
-    const std::string& filename = filename_base + std::to_string(i) + ".jpg";
+    const std::string& filename =
+        filename_base + std::to_string(i) + ".jpg";
     cv::Mat image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
     cv::imshow("Image", image);
     cv::waitKey(1);
@@ -65,20 +75,27 @@ void AerialMapperIO::loadImagesFromFile(const std::string& filename_base,
   LOG(INFO) << "images->size() = " << images->size();
 }
 
-void AerialMapperIO::loadCameraRigFromFile(
-    const std::string& filename_ncameras_yaml,
-    std::shared_ptr<aslam::NCamera> ncameras) {
+aslam::NCamera::Ptr AerialMapperIO::loadCameraRigFromFile(
+    const std::string& filename_ncameras_yaml) {
+  CHECK(filename_ncameras_yaml != "");
+  aslam::NCamera::Ptr ncameras;
+  LOG(INFO) << "Loading camera calibration from: "
+            << filename_ncameras_yaml;
   ncameras = aslam::NCamera::loadFromYaml(filename_ncameras_yaml);
   CHECK(ncameras) << "Could not load the camera calibration from: "
                   << filename_ncameras_yaml;
+  std::cout << "leaving" << std::endl;
+  return ncameras;
 }
 
 void AerialMapperIO::loadPointCloudFromFile(
     const std::string& filename_point_cloud,
     Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz,
     std::vector<int>* point_cloud_intensities) {
+  CHECK(filename_point_cloud != "");
   CHECK(point_cloud_xyz);
   CHECK(point_cloud_intensities);
+  LOG(INFO) << "Loading pointcloud from: " << filename_point_cloud;
   std::ifstream infile(filename_point_cloud);
   double x, y, z;
   int intensity;
