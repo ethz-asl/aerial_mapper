@@ -21,6 +21,7 @@ OrthoFromPcl::OrthoFromPcl(
     const Aligned<std::vector, Eigen::Vector3d>::type& pointcloud,
     const std::vector<int>& intensities, const Settings& settings)
     : settings_(settings) {
+  printParams();
   process(pointcloud, intensities);
 }
 
@@ -66,7 +67,7 @@ void OrthoFromPcl::process(
   VLOG(100) << "Define the grid.";
   const Eigen::Vector2d bottom_left(settings_.orthomosaic_easting_min,
                                     settings_.orthomosaic_northing_min);
-  Eigen::Vector2d top_right(settings_.orthomosaic_northing_min,
+  Eigen::Vector2d top_right(settings_.orthomosaic_easting_max,
                             settings_.orthomosaic_northing_max);
   const size_t width_east = std::fabs(bottom_left(0) - top_right(0));
   const size_t height_north = std::fabs(bottom_left(1) - top_right(1));
@@ -163,6 +164,31 @@ void OrthoFromPcl::process(
   if (settings_.save_orthomosaic_jpg) {
     cv::imwrite(settings_.orthomosaic_jpg_filename, ortho_image_idw);
   }
+}
+
+void OrthoFromPcl::printParams() const {
+  static constexpr int nameWidth = 30;
+  std::cout << std::string(50, '*') << std::endl
+            << "Starting Ortho-From-Pcl" << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - easting_min: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_easting_min) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - easting_max: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_easting_max) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - northing_min: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_northing_min) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - northing_max: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_northing_max) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - resolution: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_resolution) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - interp.radius: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.interpolation_radius) << std::endl;
+    std::cout <<std::string(50, '*') << std::endl;
 }
 
 }  // namespace ortho
