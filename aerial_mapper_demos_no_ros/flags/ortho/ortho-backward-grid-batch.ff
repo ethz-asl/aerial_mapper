@@ -11,7 +11,7 @@
 --orthomosaic_resolution=1.0
 --show_orthomosaic_opencv=true
 --save_orthomosaic_jpg=true
---orthomosaic_jpg_filename=/tmp/orthomosaic_incremental.jpg
+--orthomosaic_jpg_filename=/tmp/orthomosaic_batch.jpg
 --orthomosaic_elevation=414.087
 --use_digital_elevation_map=false
 --grid_mode_batch=true
