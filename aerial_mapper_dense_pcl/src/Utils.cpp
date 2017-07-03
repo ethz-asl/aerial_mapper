@@ -52,19 +52,6 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
   const unsigned char* intensityPtr;
   int offset = 0;
 
-  //    const double x_origin = 464980;
-  //    const double y_origin = 5.27226e+06;
-  //    const double z_origin = 414.087;
-
-  //    for (int v = 0; v < cvPcl.rows; ++v) {
-  //        for (int u = 0; u < cvPcl.cols; ++u, offset +=rosPcl2Msg.point_step)
-  //        {
-  //          cvPcl.operator()(v, u)[0] =
-  //          cvPcl.operator()(v, u)[1] = cvPcl.operator()(v, u)[1] - y_origin;
-  //          cvPcl.operator()(v, u)[2] = cvPcl.operator()(v, u)[2] - z_origin;
-  //        }
-  //    }
-
   std::string filename = "/tmp/pointcloud.txt";
   std::ofstream fs;
   std::ifstream ifile(filename.c_str());
@@ -73,23 +60,10 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
   } else {
     fs.open(filename.c_str());
   }
-
-  // std::cout << "rows/cols: " << cvPcl.rows << "/" << cvPcl.cols << std::endl;
   for (int v = 0; v < cvPcl.rows; ++v) {
     intensityPtr = cvPclIntensity.ptr<unsigned char>(v);
     for (int u = 0; u < cvPcl.cols; ++u, offset += rosPcl2Msg.point_step) {
       if (dense::isValidPoint(cvPcl.operator()(v, u))) {
-        //			  std::cout << "x/y/z = " <<  cvPcl.operator()(v,
-        //u)[0] << "/"
-        //						<< cvPcl.operator()(v, u)[1] <<
-        //"/" << cvPcl.operator()(v, u)[2] << std::endl;
-        //                std::cout << "cvPcl.operator()(v, u)[0] = " <<
-        //                cvPcl.operator()(v, u)[0] << std::endl;
-        //				// Copy the point cloud data to the ros msg
-        //data if current point is valid
-        //                const double x = cvPcl.operator()(v, u)[0] - x_origin;
-        //                const double y = cvPcl.operator()(v, u)[1] - y_origin;
-        //                const double z = cvPcl.operator()(v, u)[2] - z_origin;
         memcpy(&rosPcl2Msg.data[offset + 0], &cvPcl.operator()(v, u)[0],
                sizeof(float));  // x
         memcpy(&rosPcl2Msg.data[offset + 4], &cvPcl.operator()(v, u)[1],
@@ -101,7 +75,6 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
         uint8_t gray = intensityPtr[u];
         uint32_t rgb = (gray << 16) | (gray << 8) | gray;
         memcpy(&rosPcl2Msg.data[offset + 12], &rgb, sizeof(uint32_t));
-        // std::cout << "gray = " << gray << ", rgb = " << rgb << std::endl;
         fs << std::setprecision(12) << cvPcl.operator()(v, u)[0] << " "
            << cvPcl.operator()(v, u)[1] << " " << cvPcl.operator()(v, u)[2]
            << " " << int(gray) << std::endl;
@@ -120,7 +93,6 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
     }
   }
   fs.close();
-  //	cv::waitKey(0);
 }
 
 void Utils::convertDispMapToRosMsg(
