@@ -88,6 +88,15 @@ aslam::NCamera::Ptr AerialMapperIO::loadCameraRigFromFile(
   return ncameras;
 }
 
+void AerialMapperIO::subtractOriginFromPoses(const Eigen::Vector3d& origin,
+                                             Poses* T_G_Bs) {
+  CHECK(T_G_Bs);
+  CHECK(T_G_Bs->size() > 0u);
+  for (size_t i = 0u; i < T_G_Bs->size(); ++i) {
+    (*T_G_Bs)[i].getPosition() = (*T_G_Bs)[i].getPosition() - origin;
+  }
+}
+
 void AerialMapperIO::loadPointCloudFromFile(
     const std::string& filename_point_cloud,
     Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz,

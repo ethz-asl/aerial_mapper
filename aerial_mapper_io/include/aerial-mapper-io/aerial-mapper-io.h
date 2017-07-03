@@ -47,6 +47,9 @@ class AerialMapperIO {
   void loadPointCloudFromFile(
       const std::string& filename_point_cloud,
       Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz) {}
+
+  void subtractOriginFromPoses(const Eigen::Vector3d& origin,
+                               Poses* T_G_Bs);
 };
 }  // namespace io
 #endif  // namespace AERIAL_MAPPER_IO_H_
