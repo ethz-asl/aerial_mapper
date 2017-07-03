@@ -1,5 +1,5 @@
 /*
- *    Filename: main-dsm-from-file.cc
+ *    Filename: main-dsm.cc
  *  Created on: Jun 25, 2017
  *      Author: Timo Hinzmann
  *   Institute: ETH Zurich, Autonomous Systems Lab

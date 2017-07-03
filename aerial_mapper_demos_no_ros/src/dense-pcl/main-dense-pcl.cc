@@ -1,5 +1,5 @@
 /*
- *    Filename: main_from_file.cc
+ *    Filename: main-dense-pcl.cc
  *  Created on: Jun 25, 2017
  *      Author: Timo Hinzmann
  *   Institute: ETH Zurich, Autonomous Systems Lab
