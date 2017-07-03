@@ -1,45 +1,59 @@
-#ifndef FW_ONLINE_PLANAR_RECTIFICATION_H_
-#define FW_ONLINE_PLANAR_RECTIFICATION_H_
+/*
+ *    Filename: dense-pcl-planar-rectification.cc
+ *  Created on: Jun 25, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
 
+#ifndef DENSE_PCL_PLANAR_RECTIFICATION_H_
+#define DENSE_PCL_PLANAR_RECTIFICATION_H_
+
+// SYSTEM
 #include <memory>
 
+// NON-SYSTEM
+#include <aerial-mapper-dense-pcl/Utils.h>
 #include <aslam/cameras/ncamera.h>
 #include <aslam/pipeline/undistorter.h>
 #include <aslam/pipeline/undistorter-mapped.h>
 #include <cv_bridge/cv_bridge.h>
 #include <Eigen/Dense>
 #include <image_transport/image_transport.h>
-#include <aerial-mapper-dense-pcl/Utils.h>
 #include <mono_dense_reconstruction_nodes/test/Utils.h>
+#include <mono_dense_reconstruction/Optimizer.h>
 #include <mono_dense_reconstruction/PlanarRectification.h>
 #include <mono_dense_reconstruction/Undistorter.h>
+#include <mono_dense_reconstruction/VFQueue.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/fill_image.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <mono_dense_reconstruction/Optimizer.h>
-#include <mono_dense_reconstruction/VFQueue.h>
 
-class FwOnlinePlanarRectification {
+
+namespace dense_pcl {
+
+struct Settings {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+
+class PlanarRectification {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  FwOnlinePlanarRectification(std::string ncameras_yaml_path_filename,
-                              const Eigen::Vector3d& origin);
+  PlanarRectification(const std::shared_ptr<aslam::NCamera> ncameras,
+                      const Settings& origin);
   void addFrame(const aslam::Transformation& T_G_B, const cv::Mat& image);
 
  private:
-  void loadCameraRig(std::string ncameras_yaml_path_filename);
   void showUndistortedCvWindow(const cv::Mat& image_undistorted);
   void publishUndistortedImage(const cv::Mat& image);
 
   std::unique_ptr<dense::Undistorter> undistorter_;
   static constexpr size_t kFrameIdx = 0u;
-  std::shared_ptr<aslam::NCamera> ncameras_;
   ros::NodeHandle node_handle_;
-  std::unique_ptr<image_transport::ImageTransport> image_transport_;
+  image_transport::ImageTransport image_transport_;
   image_transport::Publisher pub_undistorted_image_;
   ros::Publisher pub_point_cloud_;
   aslam::Transformation T_G_B_last_;
@@ -51,8 +65,12 @@ class FwOnlinePlanarRectification {
   Eigen::Matrix3d K_;
   std::unique_ptr<dense::PlanarRectification> planar_rectification_;
 
- dense::Optimizer::Ptr optimizer_;
- dense::VFQueue::Ptr buffer_;
+  dense::Optimizer::Ptr optimizer_;
+  dense::VFQueue::Ptr buffer_;
+  std::shared_ptr<aslam::NCamera> ncameras_;
+  Settings settings_;
 };
 
-#endif
+} // namespace dense_pcl
+
+#endif // DENSE_PCL_PLANAR_RECTIFICATION_H_

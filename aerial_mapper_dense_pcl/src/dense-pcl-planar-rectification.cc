@@ -20,7 +20,8 @@ namespace dense_pcl {
 PlanarRectification::PlanarRectification(
     const std::shared_ptr<aslam::NCamera> ncameras, const Settings& settings)
     : first_frame_(true), settings_(settings), downsample_factor_(1.0),
-      ncameras_(ncameras) {
+      ncameras_(ncameras), node_handle_(),
+      image_transport_(image_transport::ImageTransport(node_handle_)) {
   CHECK(ncameras_);
 
   // Camera intrinsis.
@@ -40,11 +41,13 @@ PlanarRectification::PlanarRectification(
   LOG(INFO) << "Camera-IMU extrinsics T_B_C = " << std::endl
             << T_B_C_.getTransformationMatrix();
 
-  image_transport_.reset(new image_transport::ImageTransport(node_handle_));
-//  pub_undistorted_image_ =
-//      image_transport_->advertise("/planar_rectification/undistorted", 1);
-//  pub_point_cloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>(
-//      "/planar_rectification/point_cloud", 1);
+
+std::cout << "start advertising" << std::endl;
+  pub_undistorted_image_ =
+      image_transport_.advertise("/planar_rectification/undistorted", 1);
+  std::cout << "end advertising" << std::endl;
+  pub_point_cloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>(
+      "/planar_rectification/point_cloud", 1);
 
   // Create a planar rectification parameter object with default values
   dense::PlanarRectificationParams::Ptr parameters(

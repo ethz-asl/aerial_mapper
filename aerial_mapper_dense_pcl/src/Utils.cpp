@@ -60,15 +60,15 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl, const cv:
 //        }
 //    }
 
-//	std::string filename = "/tmp/pointcloud.txt";
-//	std::ofstream fs;
-//	std::ifstream ifile(filename.c_str());
-//	if (ifile) {
-//	   fs.open(filename.c_str(), std::fstream::app | std::fstream::out);
-//	  }
-//	else {
-//	  fs.open(filename.c_str());
-//	  }
+	std::string filename = "/tmp/pointcloud.txt";
+	std::ofstream fs;
+	std::ifstream ifile(filename.c_str());
+	if (ifile) {
+	   fs.open(filename.c_str(), std::fstream::app | std::fstream::out);
+	  }
+	else {
+	  fs.open(filename.c_str());
+	  }
 
 	//std::cout << "rows/cols: " << cvPcl.rows << "/" << cvPcl.cols << std::endl;
 	for (int v = 0; v < cvPcl.rows; ++v) {
@@ -96,11 +96,11 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl, const cv:
 				memcpy(&rosPcl2Msg.data[offset + 12],
 						&rgb, sizeof(uint32_t));
 				//std::cout << "gray = " << gray << ", rgb = " << rgb << std::endl;
-//				fs << std::setprecision(12)
-//				   << cvPcl.operator()(v, u)[0] << " "
-//				   << cvPcl.operator()(v, u)[1] << " "
-//				   << cvPcl.operator()(v, u)[2] << " "
-//				   << int(gray) << std::endl;
+				fs << std::setprecision(12)
+				   << cvPcl.operator()(v, u)[0] << " "
+				   << cvPcl.operator()(v, u)[1] << " "
+				   << cvPcl.operator()(v, u)[2] << " "
+				   << int(gray) << std::endl;
 
 			} else {
 				// If current point is not valid copy NaN
@@ -117,7 +117,7 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl, const cv:
 			}
 		}
 	}
-//	fs.close();
+	fs.close();
 //	cv::waitKey(0);
 }
 
