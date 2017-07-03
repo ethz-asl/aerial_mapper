@@ -12,6 +12,7 @@
 #include <aerial-mapper-io/aerial-mapper-io.h>
 #include <aerial-mapper-ortho/ortho-backward-grid.h>
 #include <gflags/gflags.h>
+#include <ros/ros.h>
 
 DEFINE_string(data_directory, "", "");
 DEFINE_string(filename_poses, "", "");
@@ -25,9 +26,10 @@ DEFINE_double(orthomosaic_resolution, 0.0, "");
 DEFINE_bool(show_orthomosaic_opencv, true, "");
 DEFINE_bool(save_orthomosaic_jpg, true, "");
 DEFINE_string(orthomosaic_jpg_filename, "", "");
-DEFINE_double(orthomosaic_elevation_m, 414.087, "");
+DEFINE_double(orthomosaic_elevation_m, 0.0, "");
 DEFINE_bool(use_digital_elevation_map, true, "");
 DEFINE_bool(grid_mode_batch, true, "");
+
 
 int main(int  argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -37,7 +39,7 @@ int main(int  argc, char** argv) {
   ros::init(argc, argv, "ortho_backward_grid");
   ros::Time::init();
 
-    // Parse input parameters.
+  // Parse input parameters.
   const std::string& base = FLAGS_data_directory;
   const std::string& filename_camera_rig = FLAGS_filename_camera_rig;
   const std::string& filename_poses = FLAGS_filename_poses;
@@ -62,7 +64,7 @@ int main(int  argc, char** argv) {
 
   // Load camera rig from file.
   io::AerialMapperIO io_handler;
-  const std::string& filename_camera_rig_yaml = base +filename_camera_rig;
+  const std::string& filename_camera_rig_yaml = base + filename_camera_rig;
   std::shared_ptr<aslam::NCamera> ncameras =
       io_handler.loadCameraRigFromFile(filename_camera_rig_yaml);
   CHECK(ncameras);
