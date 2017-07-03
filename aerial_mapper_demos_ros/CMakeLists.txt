@@ -27,13 +27,6 @@ cs_add_executable(${PROJECT_NAME}_dense_pcl_ros_stream_node
 add_dependencies(${PROJECT_NAME}_dense_pcl_ros_stream_node ${${PROJECT_NAME}_EXPORTED_TARGETS}})
 target_link_libraries(${PROJECT_NAME}_dense_pcl_ros_stream_node ${catkin_LIBRARIES})
 
-#cs_add_executable(${PROJECT_NAME}_backward_vimap
-#    src/node-backprojection.cc
-#    src/orthomosaic-backprojection.cc)
-
-#add_dependencies(${PROJECT_NAME}_backward_vimap ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-#target_link_libraries(${PROJECT_NAME}_backward_vimap ${catkin_LIBRARIES} ${GDAL_LIBRARY})
-
 #############
 # QTCREATOR #
 #############

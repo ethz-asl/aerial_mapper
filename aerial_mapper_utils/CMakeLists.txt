@@ -4,15 +4,6 @@ project(aerial_mapper_utils)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
-############
-# BINARIES #
-############
-add_definitions(-std=c++11)
-
-#cs_add_executable(fw_ortho_from_pcl src/ortho_from_pcl.cc src/fw-digital-elevation-map.cc)
-#add_dependencies(fw_ortho_from_pcl ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-#target_link_libraries(fw_ortho_from_pcl ${catkin_LIBRARIES} ${GDAL_LIBRARY})
-
 #############
 # QTCREATOR #
 #############
