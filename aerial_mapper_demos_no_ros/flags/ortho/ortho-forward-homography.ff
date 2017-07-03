@@ -1,9 +1,9 @@
 --alsologtostderr=true
 --v=100
---data_directory=/media/timo/scnd/catkin_ws_aerial_mapper/src/aerial_mapper/data/
---filename_poses=opt_poses.txt
---prefix_images=opt_image_
---filename_camera_rig=camera_fixed_wing.yaml
---origin_easting_m=464980.0
---origin_northing_m=5.27226e+06
---origin_elevation_m=414.087
+--forward_homography_data_directory=/media/timo/scnd/catkin_ws_aerial_mapper/src/aerial_mapper/data/
+--forward_homography_filename_poses=opt_poses.txt
+--forward_homography_prefix_images=opt_image_
+--forward_homography_filename_camera_rig=camera_fixed_wing.yaml
+--forward_homography_origin_easting_m=464980.0
+--forward_homography_origin_northing_m=5.27226e+06
+--forward_homography_origin_elevation_m=414.087

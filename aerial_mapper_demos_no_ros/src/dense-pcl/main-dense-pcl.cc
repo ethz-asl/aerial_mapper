@@ -16,14 +16,14 @@
 #include <opencv2/core/core.hpp>
 #include <ros/ros.h>
 
-DEFINE_double(origin_easting_m, 0.0, "");
-DEFINE_double(origin_elevation_m, 0.0, "");
-DEFINE_double(origin_northing_m, 0.0, "");
-DEFINE_string(data_directory, "", "");
-DEFINE_string(filename_camera_rig, "", "");
-DEFINE_string(filename_poses, "", "");
-DEFINE_string(prefix_images, "", "");
-DEFINE_int32(use_every_nth_image, 1, "");
+DEFINE_double(dense_pcl_origin_easting_m, 0.0, "");
+DEFINE_double(dense_pcl_origin_elevation_m, 0.0, "");
+DEFINE_double(dense_pcl_origin_northing_m, 0.0, "");
+DEFINE_string(dense_pcl_data_directory, "", "");
+DEFINE_string(dense_pcl_filename_camera_rig, "", "");
+DEFINE_string(dense_pcl_filename_poses, "", "");
+DEFINE_string(dense_pcl_prefix_images, "", "");
+DEFINE_int32(dense_pcl_use_every_nth_image, 1, "");
 
 
 int main(int argc, char **argv) {
@@ -34,13 +34,13 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "dense_pcl");
 
   // Parse input parameters.
-  const std::string& base = FLAGS_data_directory;
-  const std::string& filename_camera_rig = FLAGS_filename_camera_rig;
-  const std::string& filename_poses = FLAGS_filename_poses;
-  const std::string& filename_images = base + FLAGS_prefix_images;
-  const Eigen::Vector3d origin(FLAGS_origin_easting_m,
-                               FLAGS_origin_northing_m,
-                               FLAGS_origin_elevation_m);
+  const std::string& base = FLAGS_dense_pcl_data_directory;
+  const std::string& filename_camera_rig = FLAGS_dense_pcl_filename_camera_rig;
+  const std::string& filename_poses = FLAGS_dense_pcl_filename_poses;
+  const std::string& filename_images = base + FLAGS_dense_pcl_prefix_images;
+  const Eigen::Vector3d origin(FLAGS_dense_pcl_origin_easting_m,
+                               FLAGS_dense_pcl_origin_northing_m,
+                               FLAGS_dense_pcl_origin_elevation_m);
 
   // Load camera rig from file.
   io::AerialMapperIO io_handler;
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
   for (size_t i = 0u; i < images.size(); ++i) {
     LOG(INFO) << i << "/" << images.size();
     cv::Mat image = images[i];
-    if (++skip % FLAGS_use_every_nth_image == 0) {
+    if (++skip % FLAGS_dense_pcl_use_every_nth_image == 0) {
       LOG(INFO) << "i = " << i;
       const Pose& T_G_B = T_G_Bs[i];
       online_planar_rectification.addFrame(T_G_B, image);

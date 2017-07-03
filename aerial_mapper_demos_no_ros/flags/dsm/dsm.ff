@@ -1,7 +1,7 @@
 --alsologtostderr=true
 --v=2000
---data_directory=/tmp/
---point_cloud_filename=point_cloud.xyz
---origin_easting_m=200.0
---origin_elevation_m=200.0
---origin_northing_m=0.0
+--dsm_data_directory=/tmp/
+--dsm_point_cloud_filename=point_cloud.xyz
+--dsm_origin_easting_m=200.0
+--dsm_origin_elevation_m=200.0
+--dsm_origin_northing_m=0.0

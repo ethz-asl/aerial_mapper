@@ -13,13 +13,13 @@
 #include <aerial-mapper-ortho/ortho-forward-homography.h>
 #include <gflags/gflags.h>
 
-DEFINE_string(data_directory, "", "");
-DEFINE_string(filename_poses, "", "");
-DEFINE_string(prefix_images, "", "");
-DEFINE_string(filename_camera_rig, "", "");
-DEFINE_double(origin_easting_m, 0.0, "");
-DEFINE_double(origin_northing_m, 0.0, "");
-DEFINE_double(origin_elevation_m, 0.0, "");
+DEFINE_string(forward_homography_data_directory, "", "");
+DEFINE_string(forward_homography_filename_poses, "", "");
+DEFINE_string(forward_homography_prefix_images, "", "");
+DEFINE_string(forward_homography_filename_camera_rig, "", "");
+DEFINE_double(forward_homography_origin_easting_m, 0.0, "");
+DEFINE_double(forward_homography_origin_northing_m, 0.0, "");
+DEFINE_double(forward_homography_origin_elevation_m, 0.0, "");
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -29,13 +29,16 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "ortho_forward_homography");
 
   // Parse input parameters.
-  const std::string& base = FLAGS_data_directory;
-  const std::string& filename_camera_rig = FLAGS_filename_camera_rig;
-  const std::string& filename_poses = FLAGS_filename_poses;
-  const std::string& filename_images = base + FLAGS_prefix_images;
-  const Eigen::Vector3d origin(FLAGS_origin_easting_m,
-                               FLAGS_origin_northing_m,
-                               FLAGS_origin_elevation_m);
+  const std::string& base = FLAGS_forward_homography_data_directory;
+  const std::string& filename_camera_rig =
+      FLAGS_forward_homography_filename_camera_rig;
+  const std::string& filename_poses =
+      FLAGS_forward_homography_filename_poses;
+  const std::string& filename_images =
+      base + FLAGS_forward_homography_prefix_images;
+  const Eigen::Vector3d origin(FLAGS_forward_homography_origin_easting_m,
+                               FLAGS_forward_homography_origin_northing_m,
+                               FLAGS_forward_homography_origin_elevation_m);
 
   // Load camera rig from file.
   io::AerialMapperIO io_handler;

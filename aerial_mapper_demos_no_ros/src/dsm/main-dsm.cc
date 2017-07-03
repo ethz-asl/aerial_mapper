@@ -15,12 +15,12 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 
-DEFINE_int32(color_palette, 0, "");
-DEFINE_string(data_directory, "", "");
-DEFINE_string(point_cloud_filename, "", "");
-DEFINE_double(origin_easting_m, 0.0, "");
-DEFINE_double(origin_elevation_m, 0.0, "");
-DEFINE_double(origin_northing_m, 0.0, "");
+DEFINE_int32(dsm_color_palette, 0, "");
+DEFINE_string(dsm_data_directory, "", "");
+DEFINE_string(dsm_point_cloud_filename, "", "");
+DEFINE_double(dsm_origin_easting_m, 0.0, "");
+DEFINE_double(dsm_origin_elevation_m, 0.0, "");
+DEFINE_double(dsm_origin_northing_m, 0.0, "");
 
 
 int main(int argc, char **argv) {
@@ -32,12 +32,12 @@ int main(int argc, char **argv) {
 
    // Parse input parameters.
   dsm::Settings settings;
-  settings.color_palette = FLAGS_color_palette;
-  settings.origin = Eigen::Vector3d(FLAGS_origin_easting_m,
-                                    FLAGS_origin_northing_m,
-                                    FLAGS_origin_elevation_m);
-  const std::string& filename_point_cloud = FLAGS_data_directory +
-      FLAGS_point_cloud_filename;
+  settings.color_palette = FLAGS_dsm_color_palette;
+  settings.origin = Eigen::Vector3d(FLAGS_dsm_origin_easting_m,
+                                    FLAGS_dsm_origin_northing_m,
+                                    FLAGS_dsm_origin_elevation_m);
+  const std::string& filename_point_cloud = FLAGS_dsm_data_directory +
+      FLAGS_dsm_point_cloud_filename;
 
   io::AerialMapperIO io_handler;
   Aligned<std::vector, Eigen::Vector3d>::type point_cloud_xyz;

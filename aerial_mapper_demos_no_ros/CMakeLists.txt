@@ -10,7 +10,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 add_definitions(-std=c++11)
 
 cs_add_library(${PROJECT_NAME}
-  src/dsm/main-dsm-from-file.cc
+  src/dsm/main-dsm.cc
 )
 
 # ORTHO-MOSAIC: forward/homography
@@ -33,13 +33,13 @@ target_link_libraries(${PROJECT_NAME}_ortho_from_pcl ${catkin_LIBRARIES})
 
 # DSM
 cs_add_executable(${PROJECT_NAME}_dsm_from_file
-    src/dsm/main-dsm-from-file.cc)
+    src/dsm/main-dsm.cc)
 add_dependencies(${PROJECT_NAME}_dsm_from_file ${${PROJECT_NAME}_EXPORTED_TARGETS}})
 target_link_libraries(${PROJECT_NAME}_dsm_from_file ${catkin_LIBRARIES})
 
 # DENSE POINT CLOUD
 cs_add_executable(${PROJECT_NAME}_dense_pcl_from_file
-    src/dense-pcl/main_from_file.cc)
+    src/dense-pcl/main-dense-pcl.cc)
 add_dependencies(${PROJECT_NAME}_dense_pcl_from_file ${${PROJECT_NAME}_EXPORTED_TARGETS}})
 target_link_libraries(${PROJECT_NAME}_dense_pcl_from_file ${catkin_LIBRARIES})
 

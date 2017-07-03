@@ -14,21 +14,21 @@
 #include <gflags/gflags.h>
 #include <ros/ros.h>
 
-DEFINE_string(data_directory, "", "");
-DEFINE_string(filename_poses, "", "");
-DEFINE_string(prefix_images, "", "");
-DEFINE_string(filename_camera_rig, "", "");
-DEFINE_double(orthomosaic_easting_min, 0.0, "");
-DEFINE_double(orthomosaic_easting_max, 0.0, "");
-DEFINE_double(orthomosaic_northing_min, 0.0, "");
-DEFINE_double(orthomosaic_northing_max, 0.0, "");
-DEFINE_double(orthomosaic_resolution, 0.0, "");
-DEFINE_bool(show_orthomosaic_opencv, true, "");
-DEFINE_bool(save_orthomosaic_jpg, true, "");
-DEFINE_string(orthomosaic_jpg_filename, "", "");
-DEFINE_double(orthomosaic_elevation_m, 0.0, "");
-DEFINE_bool(use_digital_elevation_map, true, "");
-DEFINE_bool(grid_mode_batch, true, "");
+DEFINE_string(backward_grid_data_directory, "", "");
+DEFINE_string(backward_grid_filename_poses, "", "");
+DEFINE_string(backward_grid_prefix_images, "", "");
+DEFINE_string(backward_grid_filename_camera_rig, "", "");
+DEFINE_double(backward_grid_orthomosaic_easting_min, 0.0, "");
+DEFINE_double(backward_grid_orthomosaic_easting_max, 0.0, "");
+DEFINE_double(backward_grid_orthomosaic_northing_min, 0.0, "");
+DEFINE_double(backward_grid_orthomosaic_northing_max, 0.0, "");
+DEFINE_double(backward_grid_orthomosaic_resolution, 0.0, "");
+DEFINE_bool(backward_grid_show_orthomosaic_opencv, true, "");
+DEFINE_bool(backward_grid_save_orthomosaic_jpg, true, "");
+DEFINE_string(backward_grid_orthomosaic_jpg_filename, "", "");
+DEFINE_double(backward_grid_orthomosaic_elevation_m, 0.0, "");
+DEFINE_bool(backward_grid_use_digital_elevation_map, true, "");
+DEFINE_bool(backward_grid_grid_mode_batch, true, "");
 
 
 int main(int  argc, char** argv) {
@@ -40,23 +40,34 @@ int main(int  argc, char** argv) {
   ros::Time::init();
 
   // Parse input parameters.
-  const std::string& base = FLAGS_data_directory;
-  const std::string& filename_camera_rig = FLAGS_filename_camera_rig;
-  const std::string& filename_poses = FLAGS_filename_poses;
-  const std::string& filename_images = base + FLAGS_prefix_images;
+  const std::string& base = FLAGS_backward_grid_data_directory;
+  const std::string& filename_camera_rig =
+      FLAGS_backward_grid_filename_camera_rig;
+  const std::string& filename_poses = FLAGS_backward_grid_filename_poses;
+  const std::string& filename_images = base + FLAGS_backward_grid_prefix_images;
 
   ortho::SettingsGrid settings;
-  settings.orthomosaic_easting_min = FLAGS_orthomosaic_easting_min;
-  settings.orthomosaic_easting_max = FLAGS_orthomosaic_easting_max;
-  settings.orthomosaic_northing_min = FLAGS_orthomosaic_northing_min;
-  settings.orthomosaic_northing_max = FLAGS_orthomosaic_northing_max;
-  settings.orthomosaic_resolution = FLAGS_orthomosaic_resolution;
-  settings.show_orthomosaic_opencv = FLAGS_show_orthomosaic_opencv;
-  settings.save_orthomosaic_jpg = FLAGS_save_orthomosaic_jpg;
-  settings.orthomosaic_jpg_filename = FLAGS_orthomosaic_jpg_filename;
-  settings.orthomosaic_elevation_m = FLAGS_orthomosaic_elevation_m;
-  settings.use_digital_elevation_map = FLAGS_use_digital_elevation_map;
-  if (FLAGS_grid_mode_batch) {
+  settings.orthomosaic_easting_min =
+      FLAGS_backward_grid_orthomosaic_easting_min;
+  settings.orthomosaic_easting_max =
+      FLAGS_backward_grid_orthomosaic_easting_max;
+  settings.orthomosaic_northing_min =
+      FLAGS_backward_grid_orthomosaic_northing_min;
+  settings.orthomosaic_northing_max =
+      FLAGS_backward_grid_orthomosaic_northing_max;
+  settings.orthomosaic_resolution =
+      FLAGS_backward_grid_orthomosaic_resolution;
+  settings.show_orthomosaic_opencv =
+      FLAGS_backward_grid_show_orthomosaic_opencv;
+  settings.save_orthomosaic_jpg =
+      FLAGS_backward_grid_save_orthomosaic_jpg;
+  settings.orthomosaic_jpg_filename =
+      FLAGS_backward_grid_orthomosaic_jpg_filename;
+  settings.orthomosaic_elevation_m =
+      FLAGS_backward_grid_orthomosaic_elevation_m;
+  settings.use_digital_elevation_map =
+      FLAGS_backward_grid_use_digital_elevation_map;
+  if (FLAGS_backward_grid_grid_mode_batch) {
     settings.mode = ortho::Mode::Batch;
   } else {
     settings.mode = ortho::Mode::Incremental;
