@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iomanip>
 #include <memory>
+#include <string>
 
 // NON-SYSTEM
 #include <aerial-mapper-utils/utils-color-palette.h>
@@ -35,11 +36,16 @@ namespace ortho {
 
 struct Settings {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  int color_palette = 6;
-  int resolution = 2;
-  bool show_output = true;
+  bool show_orthomosaic_opencv = true;
   int interpolation_radius = 10;
-  bool adaptive_interpolation = false;
+  double orthomosaic_resolution = 1.0;
+  bool use_adaptive_interpolation = false;
+  bool save_orthomosaic_jpg = true;
+  std::string orthomosaic_jpg_filename = "";
+  double orthomosaic_easting_min = 0.0;
+  double orthomosaic_northing_min = 0.0;
+  double orthomosaic_easting_max = 0.0;
+  double orthomosaic_northing_max = 0.0;
 };
 
 class OrthoFromPcl {

@@ -29,7 +29,7 @@ void OrthoFromPcl::process(
     const std::vector<int>& intensities) {
   CHECK(!pointcloud.empty());
 
-  // Insert pointcloud in kdtree.
+  LOG(INFO) << "Number of points: " << pointcloud.size();
   PointCloud<double> cloud_kdtree;
   cloud_kdtree.pts.resize(pointcloud.size());
   double min_height = std::numeric_limits<double>::max();
@@ -64,14 +64,16 @@ void OrthoFromPcl::process(
   index.buildIndex();
 
   VLOG(100) << "Define the grid.";
-  const Eigen::Vector2d bottom_left(-400, -200);
-  Eigen::Vector2d top_right(200, 400);
+  const Eigen::Vector2d bottom_left(settings_.orthomosaic_easting_min,
+                                    settings_.orthomosaic_northing_min);
+  Eigen::Vector2d top_right(settings_.orthomosaic_northing_min,
+                            settings_.orthomosaic_northing_max);
   const size_t width_east = std::fabs(bottom_left(0) - top_right(0));
   const size_t height_north = std::fabs(bottom_left(1) - top_right(1));
   const Eigen::Vector2d top_left =
       bottom_left + Eigen::Vector2d(0.0, height_north);
 
-  const double d = static_cast<double>(settings_.resolution);
+  const double d = static_cast<double>(settings_.orthomosaic_resolution);
   cv::Mat ortho_image_idw(height_north * d, width_east * d, CV_8UC3,
                           cv::Scalar(255, 255, 255));
   double height_max = max_height;
@@ -95,7 +97,7 @@ void OrthoFromPcl::process(
       const double query_pt[3] = {cell_center(0), cell_center(1), 0.0};
       index.findNeighbors(resultSet, query_pt, nanoflann::SearchParams());
       // Adaptive interpolation.
-      if (settings_.adaptive_interpolation) {
+      if (settings_.use_adaptive_interpolation) {
         int lambda = 10;
         while (resultSet.size() == 0u) {
           nanoflann::RadiusResultSet<double, int> tmp(
@@ -149,14 +151,17 @@ void OrthoFromPcl::process(
       }
     }
   }
-  const ros::Time time2 = ros::Time::now();
-  const ros::Duration& d1 = time2 - time1;
-  LOG(INFO) << "delta(t) = " << d1;
 
-  if (settings_.show_output) {
+  const ros::Time time2 = ros::Time::now();
+  const ros::Duration& delta_time = time2 - time1;
+  LOG(INFO) << "Time elapsed: " << delta_time;
+
+  if (settings_.show_orthomosaic_opencv) {
     cv::imshow("ortho_from_pcl", ortho_image_idw);
-    cv::imwrite("/tmp/ortho_from_pcl.jpg", ortho_image_idw);
     cv::waitKey(0);
+  }
+  if (settings_.save_orthomosaic_jpg) {
+    cv::imwrite(settings_.orthomosaic_jpg_filename, ortho_image_idw);
   }
 }
 
