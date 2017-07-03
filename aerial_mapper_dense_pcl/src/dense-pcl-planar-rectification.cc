@@ -1,37 +1,50 @@
-#include "aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h"
+/*
+ *    Filename: main_from_file.cc
+ *  Created on: Jun 25, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
+
+// NON-SYSTEM
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_types.h>
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/conversions.h>
 #include <pcl_ros/transforms.h>
 
-FwOnlinePlanarRectification::FwOnlinePlanarRectification(
-    std::string ncameras_yaml_path_filename, const Eigen::Vector3d& origin)
-    : first_frame_(true), origin_(origin), downsample_factor_(1.0) {
-  loadCameraRig(ncameras_yaml_path_filename);
+// PACKAGE
+#include "aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h"
+
+namespace dense_pcl {
+
+PlanarRectification::PlanarRectification(
+    const std::shared_ptr<aslam::NCamera> ncameras, const Settings& settings)
+    : first_frame_(true), settings_(settings), downsample_factor_(1.0),
+      ncameras_(ncameras) {
   CHECK(ncameras_);
 
+  // Camera intrinsis.
   aslam::PinholeCamera::ConstPtr pinhole_camera_ptr =
       std::dynamic_pointer_cast<const aslam::PinholeCamera>(
           ncameras_->getCameraShared(kFrameIdx));
   K_ = pinhole_camera_ptr->getCameraMatrix();
-  std::cout << "K = " << K_ << std::endl;
+  LOG(INFO) << "Camera calibration matrix K = " << std::endl << K_;
 
-  // Get distortion parameters.
+  // Camera distortion parameters.
   Eigen::VectorXd k =
       ncameras_->getCameraShared(kFrameIdx)->getDistortion().getParameters();
-  std::cout << "k = " << k.transpose() << std::endl;
+  LOG(INFO) << "Camera distortion k = " << k.transpose();
   undistorter_.reset(
       new dense::Equidistant_Undistorter(K_, k(0), k(1), k(2), k(3)));
   T_B_C_ = ncameras_->get_T_C_B(kFrameIdx).inverse();
-  std::cout << "T_B_C = " << std::endl << T_B_C_.getTransformationMatrix()
-            << std::endl;
+  LOG(INFO) << "Camera-IMU extrinsics T_B_C = " << std::endl
+            << T_B_C_.getTransformationMatrix();
 
   image_transport_.reset(new image_transport::ImageTransport(node_handle_));
-  pub_undistorted_image_ =
-      image_transport_->advertise("/planar_rectification/undistorted", 1);
-  pub_point_cloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>(
-      "/planar_rectification/point_cloud", 1);
+//  pub_undistorted_image_ =
+//      image_transport_->advertise("/planar_rectification/undistorted", 1);
+//  pub_point_cloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>(
+//      "/planar_rectification/point_cloud", 1);
 
   // Create a planar rectification parameter object with default values
   dense::PlanarRectificationParams::Ptr parameters(
@@ -75,8 +88,10 @@ FwOnlinePlanarRectification::FwOnlinePlanarRectification(
   node_handle_.param<int>("speckleWindowSizeSGBM",
                           parameters->speckleWindowSizeSGBM, 100);
   node_handle_.param<int>("speckleRangeSGBM", parameters->speckleRangeSGBM, 20);
-  node_handle_.param<bool>("fullDPSGBM", parameters->fullDPSGBM, true);  // false
-  node_handle_.param<int>("parallelShift", parameters->parallelShift, 80);  // 10
+  node_handle_.param<bool>("fullDPSGBM", parameters->fullDPSGBM,
+                           true);  // false
+  node_handle_.param<int>("parallelShift", parameters->parallelShift,
+                          80);  // 10
 
   // Create a planar rectification object and initialize it with given
   // parameters.
@@ -101,21 +116,14 @@ FwOnlinePlanarRectification::FwOnlinePlanarRectification(
   buffer_params->maxSize = optimization_set_size;
   buffer_params->minSizeToBeReady = optimization_set_size;  // Important!
 
-  // Optimizer
+  // Optimizer.
   optimizer_ = dense::Optimizer::Ptr(new dense::Optimizer(optimizer_params));
   buffer_ = dense::VFQueue::Ptr(new dense::VFQueue(buffer_params));
+  ROS_ERROR_STREAM("Leaving ctor");
 }
 
-void FwOnlinePlanarRectification::loadCameraRig(
-    std::string ncameras_yaml_path_filename) {
-  VLOG(0) << "load camera rig";
-  ncameras_ = aslam::NCamera::loadFromYaml(ncameras_yaml_path_filename);
-  CHECK(ncameras_) << "Could not load the camera calibration from: "
-                   << ncameras_yaml_path_filename;
-}
-
-void FwOnlinePlanarRectification::addFrame(const aslam::Transformation& T_G_B,
-                                           const cv::Mat& image_raw) {
+void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
+                                   const cv::Mat& image_raw) {
   VLOG(0) << "add frame";
   const ros::Time time1 = ros::Time::now();
   if (first_frame_) {
@@ -180,7 +188,7 @@ void FwOnlinePlanarRectification::addFrame(const aslam::Transformation& T_G_B,
     ros::Time timestamp = ros::Time::now();
     Utils::convertCvPclToRosPCL2Msg(point_cloud, point_cloud_intensity,
                                     "/world", timestamp, point_cloud_msg);
-    pub_point_cloud_.publish(point_cloud_msg);
+    //pub_point_cloud_.publish(point_cloud_msg);
 
     //     pcl::PointCloud<pcl::PointXYZ> cloud;
     //     pcl::fromROSMsg(point_cloud_msg, cloud);
@@ -254,18 +262,19 @@ void FwOnlinePlanarRectification::addFrame(const aslam::Transformation& T_G_B,
   image_undistorted_last_ = image_undistorted;
 }
 
-void FwOnlinePlanarRectification::showUndistortedCvWindow(
+void PlanarRectification::showUndistortedCvWindow(
     const cv::Mat& image_undistorted) {
   cv::imshow("Undistorted image", image_undistorted);
   cv::waitKey(1);
 }
 
-void FwOnlinePlanarRectification::publishUndistortedImage(
-    const cv::Mat& image) {
+void PlanarRectification::publishUndistortedImage(const cv::Mat& image) {
   sensor_msgs::Image msg;
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "world";
   sensor_msgs::fillImage(msg, sensor_msgs::image_encodings::MONO8, image.rows,
                          image.cols, image.cols, image.data);
-  pub_undistorted_image_.publish(msg);
+  //pub_undistorted_image_.publish(msg);
 }
+
+}  // namespace dense_pcl
