@@ -167,7 +167,7 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
 
   cv::imshow("image_undistorted_last", image_undistorted_last_);
   cv::imshow("image_undistorted", image_undistorted);
-  cv::waitKey(0);
+  cv::waitKey(1);
 
   planar_rectification_->densifyStereoPair(*stereoPair);
   if (stereoPair->vF1->isDensified()) {

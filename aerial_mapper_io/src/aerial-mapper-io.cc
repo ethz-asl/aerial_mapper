@@ -99,6 +99,24 @@ void AerialMapperIO::subtractOriginFromPoses(const Eigen::Vector3d& origin,
 
 void AerialMapperIO::loadPointCloudFromFile(
     const std::string& filename_point_cloud,
+    Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz) {
+  CHECK(filename_point_cloud != "");
+  CHECK(point_cloud_xyz);
+  LOG(INFO) << "Loading pointcloud from: " << filename_point_cloud;
+  std::ifstream infile(filename_point_cloud);
+  double x, y, z;
+  int intensity;
+  while (infile >> x >> y >> z >> intensity) {
+    if (z > -100) {
+      point_cloud_xyz->push_back(Eigen::Vector3d(x, y, z));
+    }
+    if (infile.eof()) break;
+  }
+  CHECK(point_cloud_xyz->size() > 0);
+}
+
+void AerialMapperIO::loadPointCloudFromFile(
+    const std::string& filename_point_cloud,
     Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz,
     std::vector<int>* point_cloud_intensities) {
   CHECK(filename_point_cloud != "");

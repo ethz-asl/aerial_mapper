@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
   const Eigen::Vector3d origin(FLAGS_dense_pcl_origin_easting_m,
                                FLAGS_dense_pcl_origin_northing_m,
                                FLAGS_dense_pcl_origin_elevation_m);
+  LOG(INFO) << "Origin: " << origin.transpose() << std::endl;
 
   // Load camera rig from file.
   io::AerialMapperIO io_handler;
