@@ -40,8 +40,8 @@ int main(int argc, char** argv) {
   // Load camera rig from file.
   io::AerialMapperIO io_handler;
   const std::string& filename_camera_rig_yaml = base + filename_camera_rig;
-  std::shared_ptr<aslam::NCamera> ncameras;
-  ncameras = io_handler.loadCameraRigFromFile(filename_camera_rig_yaml);
+  std::shared_ptr<aslam::NCamera> ncameras =
+      io_handler.loadCameraRigFromFile(filename_camera_rig_yaml);
   CHECK(ncameras);
 
   // Load body poses from file.

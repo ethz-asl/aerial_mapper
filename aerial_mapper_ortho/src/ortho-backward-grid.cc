@@ -13,24 +13,16 @@
 #include <aslam/pipeline/undistorter.h>
 #include <aslam/pipeline/undistorter-mapped.h>
 
-//DECLARE_string(orthomosaic_filename_poses);
-//DECLARE_string(orthomosaic_image_directory);
-//DECLARE_double(orthomosaic_easting_min);
-//DECLARE_double(orthomosaic_northing_min);
-//DECLARE_double(orthomosaic_easting_max);
-//DECLARE_double(orthomosaic_northing_max);
-//DECLARE_int32(orthomosaic_UTM_code);
-//DECLARE_double(orthomosaic_resolution);
-//DECLARE_string(orthomosaic_camera_calibration_yaml);
-//DECLARE_string(orthomosaic_filename_height_map);
 
 namespace ortho {
 
 OrthoBackwardGrid::OrthoBackwardGrid(
     const std::shared_ptr<aslam::NCamera> ncameras, const Poses& T_G_Bs,
-    const Images& images, const Eigen::Vector3d& origin)
-    : ncameras_(ncameras), origin_(origin) {
+    const Images& images, const SettingsGrid& settings)
+    : ncameras_(ncameras), settings_(settings) {
   CHECK(ncameras_);
+  printParams();
+
   // Transform to camera frame.
   Poses T_G_Cs;
   for (const Pose& T_G_B : T_G_Bs) {
@@ -50,7 +42,11 @@ OrthoBackwardGrid::OrthoBackwardGrid(
     images_undistorted.push_back(image_undistorted);
     images_new.push_back(image);
   }
-  processBatch(T_G_Cs, images_new);
+  if (settings_.mode == Mode::Batch) {
+    processBatch(T_G_Cs, images_new);
+  } else if (settings_.mode == Mode::Incremental) {
+    processIncremental(T_G_Cs, images_new);
+  }
 }
 
 void OrthoBackwardGrid::processBatch(const Poses& T_G_Cs,
@@ -60,11 +56,10 @@ void OrthoBackwardGrid::processBatch(const Poses& T_G_Cs,
   LOG(INFO) << "images.size() = " << images.size();
   LOG(INFO) << "T_G_Cs.size() = " << T_G_Cs.size();
 
-  printParams();
+  CHECK(ncameras_);
   const aslam::Camera& camera = ncameras_->getCamera(kFrameIdx);
 
   // TODO(hitimo): Re-enable the height map.
-  bool use_digital_elevation_map = false;
   cv::Mat height_map;
   // loadHeightMap(FLAGS_orthomosaic_filename_height_map, &height_map);
 
@@ -93,16 +88,16 @@ void OrthoBackwardGrid::processBatch(const Poses& T_G_Cs,
   size_t x_limit = static_cast<int>(width_east * d) - 1;
   const ros::Time time1 = ros::Time::now();
   for (size_t y = 0u; y < y_limit; ++y) {
-    CHECK(observation_map.cols() > y);
+    //CHECK(observation_map.cols() > y);
     VLOG(100) << "[ " << y << " / " << height_north * d << " ]";
     for (size_t x = 0u; x < x_limit; ++x) {
       VLOG(200) << "[ " << x << " / " << width_east * d << " ]";
-      CHECK(observation_map.rows() > x);
+      //CHECK(observation_map.rows() > x);
       const Eigen::Vector2d& cell_center =
           b +
           Eigen::Vector2d(static_cast<double>(x),
                           -static_cast<double>(y)) / d;
-      if (use_digital_elevation_map) {
+      if (settings_.use_digital_elevation_map) {
         // TODO(hitimo): Re-enable the height map.
         // const double height_from_dem = height_map.at<double>(y, x);
         // landmark_UTM =
@@ -110,7 +105,7 @@ void OrthoBackwardGrid::processBatch(const Poses& T_G_Cs,
         // height_from_dem);
       } else {
         const Eigen::Vector3d landmark_UTM(cell_center(0), cell_center(1),
-                                           414.087);
+                                           settings_.orthomosaic_elevation_m);
         // Loop over all images.
         for (size_t i = 0u; i < images.size(); ++i) {
           const Eigen::Vector3d& C_landmark =
@@ -131,9 +126,11 @@ void OrthoBackwardGrid::processBatch(const Poses& T_G_Cs,
           if (keypoint_visible) {
             // SIC! Order of keypoint x/y.
             const int kp_y =
-                std::min(static_cast<int>(std::round(keypoint(1))), 479);
+                std::min(static_cast<int>(std::round(keypoint(1))),
+                         static_cast<int>(camera.imageHeight()) - 1);
             const int kp_x =
-                std::min(static_cast<int>(std::round(keypoint(0))), 751);
+                std::min(static_cast<int>(std::round(keypoint(0))),
+                         static_cast<int>(camera.imageWidth()) - 1);
             const double gray_value = images[i].at<uchar>(kp_y, kp_x);
             orthomosaic.at<cv::Vec3b>(y, x) =
                 cv::Vec3b(gray_value, gray_value, gray_value);
@@ -142,17 +139,23 @@ void OrthoBackwardGrid::processBatch(const Poses& T_G_Cs,
         }
       }
     }
-    cv::imshow("Orthomosaic", orthomosaic);
-    cv::waitKey(1);
+    if (settings_.show_orthomosaic_opencv) {
+      cv::imshow("Orthomosaic", orthomosaic);
+      cv::waitKey(1);
+    }
   }
 
   const ros::Time time2 = ros::Time::now();
-  const ros::Duration& d1 = time2 - time1;
-  LOG(INFO) << "delta(t): " << d1 << std::endl;
+  const ros::Duration& delta_time = time2 - time1;
+  LOG(INFO) << "Time elapsed: " << delta_time;
 
-  cv::imshow("Orthomosaic", orthomosaic);
-  cv::imwrite("/tmp/orthomosaic_no_dem.jpeg", orthomosaic);
-  cv::waitKey(0);
+  if (settings_.show_orthomosaic_opencv) {
+    cv::imshow("Orthomosaic", orthomosaic);
+    cv::waitKey(0);
+  }
+  if (settings_.save_orthomosaic_jpg) {
+    cv::imwrite(settings_.orthomosaic_jpg_filename, orthomosaic);
+  }
 }
 
 void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
@@ -177,7 +180,6 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
   const Eigen::Vector2d top_left =
       bottom_left + Eigen::Vector2d(0.0, height_north);
 
-  // bool use_digital_elevation_map = false;
   // Iterate over all cells.
   const double d = static_cast<double>(settings_.orthomosaic_resolution);
   const Eigen::Vector2d& a = Eigen::Vector2d(0.5, -0.5) / d;
@@ -210,7 +212,8 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
       const Eigen::Vector2d& keypoint =
           border_keypoints_.col(border_pixel_index);
       ncameras_->getCameraShared(kFrameIdx)->backProject3(keypoint, &C_ray);
-      const double scale = -(T_G_C.getPosition()(2) - 414.087) /
+      const double scale = -(T_G_C.getPosition()(2) -
+                             settings_.orthomosaic_elevation_m) /
                            (T_G_C.getRotationMatrix() * C_ray)(2);
       const Eigen::Vector3d& G_landmark =
           T_G_C.getPosition() + scale * T_G_C.getRotationMatrix() * C_ray;
@@ -222,7 +225,7 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
 
     double x_max, x_min, y_max, y_min;
     x_max = y_max = 0.0;
-    x_min = y_min = 1.0e16;
+    x_min = y_min = std::numeric_limits<double>::max();
     for (const cv::Point2f& ground_point : ground_points) {
       if (ground_point.x > x_max) {
         x_max = ground_point.x;
@@ -238,7 +241,7 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
       }
     }
 
-    // Find correponding grid points.
+    // Find corresponding grid points.
     int x_max_, x_min_, y_max_, y_min_;
     x_max_ = int(x_max) - b(0);
     x_min_ = int(x_min) - b(0);
@@ -253,7 +256,7 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
               b + Eigen::Vector2d(static_cast<double>(x),
                                   -static_cast<double>(y)) / d;
           const Eigen::Vector3d landmark_UTM(cell_center(0), cell_center(1),
-                                             414.087);
+                                             settings_.orthomosaic_elevation_m);
           const Eigen::Vector3d& C_landmark =
               T_G_Cs[i].inverse().transform(landmark_UTM);
           Eigen::Vector2d keypoint;
@@ -269,9 +272,11 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
                aslam::ProjectionResult::PROJECTION_INVALID);
           if (keypoint_visible) {
             const int kp_y =
-                std::min(static_cast<int>(std::round(keypoint(1))), 479);
+                std::min(static_cast<int>(std::round(keypoint(1))),
+                         static_cast<int>(camera.imageHeight()) - 1);
             const int kp_x =
-                std::min(static_cast<int>(std::round(keypoint(0))), 751);
+                std::min(static_cast<int>(std::round(keypoint(0))),
+                         static_cast<int>(camera.imageWidth()) - 1);
             const double gray_value = images[i].at<uchar>(kp_y, kp_x);
             orthomosaic.at<cv::Vec3b>(y, x) =
                 cv::Vec3b(gray_value, gray_value, gray_value);
@@ -284,44 +289,35 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
   }  // images
 
   const ros::Time time2 = ros::Time::now();
-  const ros::Duration& d1 = time2 - time1;
-  std::cout << d1 << std::endl;
+  const ros::Duration& delta_time = time2 - time1;
+  LOG(INFO) << "Time elapsed: " << delta_time;
 
-  cv::imshow("Orthomosaic", orthomosaic);
-  cv::waitKey(0);
-  cv::imwrite("/tmp/orthomosaic_incremental.jpeg", orthomosaic);
+  if (settings_.show_orthomosaic_opencv) {
+    cv::imshow("Orthomosaic", orthomosaic);
+    cv::waitKey(0);
+  }
+  if (settings_.save_orthomosaic_jpg) {
+    cv::imwrite(settings_.orthomosaic_jpg_filename, orthomosaic);
+  }
 }
 
-//void OrthoBackwardGrid::printParams() {
-//  const int nameWidth = 30;
-//  std::cout << "***************************************************************"
-//               "*******************************" << std::endl
-//            << "Starting Orthomosaic image generation" << std::endl
-//            << std::left
-//            << std::setw(nameWidth) << " - Filename poses: " << std::left
-//            << std::setw(nameWidth) << FLAGS_orthomosaic_filename_poses
-//            << std::endl << std::left << std::setw(nameWidth)
-//            << " - Image directory: " << std::left << std::setw(nameWidth)
-//            << FLAGS_orthomosaic_image_directory << std::endl << std::left
-//            << std::setw(nameWidth)
-//            << " - Filename camera calibration: " << std::left
-//            << std::setw(nameWidth)
-//            << FLAGS_orthomosaic_camera_calibration_yaml
-//            << std::endl << std::left << std::setw(nameWidth)
-//            << " - Resolution: " << std::left << std::setw(nameWidth)
-//            << FLAGS_orthomosaic_resolution << std::endl << std::left
-//            << std::setw(nameWidth) << " - Easting min.: " << std::left
-//            << std::setw(nameWidth) << FLAGS_orthomosaic_easting_min
-//            << std::endl << std::left << std::setw(nameWidth)
-//            << " - Easting max.: " << std::left << std::setw(nameWidth)
-//            << FLAGS_orthomosaic_easting_max << std::endl << std::left
-//            << std::setw(nameWidth) << " - Northing min.: " << std::left
-//            << std::setw(nameWidth) << FLAGS_orthomosaic_northing_min
-//            << std::endl << std::left << std::setw(nameWidth)
-//            << " - Northing max.: " << std::left << std::setw(nameWidth)
-//            << FLAGS_orthomosaic_northing_max << std::endl;
-//  std::cout << "***************************************************************"
-//               "*******************************" << std::endl;
-//}
+void OrthoBackwardGrid::printParams() const {
+  const int nameWidth = 30;
+  std::cout << std::string(50, '*') << std::endl
+            << "Starting Orthomosaic image generation" << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Easting_min: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_easting_min) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Northing_min: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_northing_min) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Easting_max: " << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_easting_max) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Resolution" << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_resolution) << std::endl;
+  std::cout << std::string(50, '*') << std::endl;
+}
 
 }  // namespace ortho

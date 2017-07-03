@@ -1,0 +1,17 @@
+--alsologtostderr=false
+--v=0
+--data_directory=/media/timo/scnd/catkin_ws_aerial_mapper/src/aerial_mapper/data/
+--filename_poses=opt_poses.txt
+--prefix_images=opt_image_
+--filename_camera_rig=camera_fixed_wing.yaml
+--orthomosaic_easting_min=464499.0
+--orthomosaic_northing_min=5271960.0
+--orthomosaic_easting_max=465056.47
+--orthomosaic_northing_max=5272700.0
+--orthomosaic_resolution=1.0
+--show_orthomosaic_opencv=true
+--save_orthomosaic_jpg=true
+--orthomosaic_jpg_filename=/tmp/orthomosaic_incremental.jpg
+--orthomosaic_elevation=414.087
+--use_digital_elevation_map=false
+--grid_mode_batch=true
