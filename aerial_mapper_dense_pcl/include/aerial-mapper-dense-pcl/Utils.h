@@ -22,9 +22,15 @@
 
 #include <mono_dense_reconstruction/StereoPair.h>
 
-class Utils{
-public:
-static void convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl, const cv::Mat& cvPclIntensity, const std::string& referenceFrameName, const ros::Time& timestamp, sensor_msgs::PointCloud2& rosPcl2Msg);
-static void convertDispMapToRosMsg(const cv::Mat& disparityMap, const std::string& referenceFrameName, const ros::Time& timestamp, stereo_msgs::DisparityImage& disparityRosMsg);
+class Utils {
+ public:
+  static void convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
+                                       const cv::Mat& cvPclIntensity,
+                                       const std::string& referenceFrameName,
+                                       const ros::Time& timestamp,
+                                       sensor_msgs::PointCloud2& rosPcl2Msg);
+  static void convertDispMapToRosMsg(
+      const cv::Mat& disparityMap, const std::string& referenceFrameName,
+      const ros::Time& timestamp, stereo_msgs::DisparityImage& disparityRosMsg);
 };
 #endif /* UTILS_H_ */
