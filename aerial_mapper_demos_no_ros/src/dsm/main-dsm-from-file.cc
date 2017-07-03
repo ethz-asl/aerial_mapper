@@ -15,14 +15,31 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 
+DEFINE_int32(color_palette, 0, "");
+DEFINE_string(data_directory, "", "");
+DEFINE_string(point_cloud_filename, "", "");
+DEFINE_double(origin_easting_m, 0.0, "");
+DEFINE_double(origin_elevation_m, 0.0, "");
+DEFINE_double(origin_northing_m, 0.0, "");
+
+
 int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
+  // TODO(hitimo): Remove ROS dependency here.
   ros::init(argc, argv, "dsm_from_file");
 
+   // Parse input parameters.
+  dsm::Settings settings;
+  settings.color_palette = FLAGS_color_palette;
+  settings.origin = Eigen::Vector3d(FLAGS_origin_easting_m,
+                                    FLAGS_origin_northing_m,
+                                    FLAGS_origin_elevation_m);
+  const std::string& filename_point_cloud = FLAGS_data_directory +
+      FLAGS_point_cloud_filename;
+
   io::AerialMapperIO io_handler;
-  std::string filename_point_cloud = "/tmp/pointcloud.txt";
   Aligned<std::vector, Eigen::Vector3d>::type point_cloud_xyz;
   LOG(INFO) << "Loading the point cloud from the file: "
             << filename_point_cloud;
@@ -30,8 +47,6 @@ int main(int argc, char **argv) {
                                     &point_cloud_xyz);
 
   LOG(INFO) << "Generating the digital surface map.";
-  dsm::Settings settings;
-  settings.origin = Eigen::Vector3d(200.0, 200.0, 0.0);
   dsm::Dsm digital_surface_map(settings);
   digital_surface_map.process(point_cloud_xyz);
 
