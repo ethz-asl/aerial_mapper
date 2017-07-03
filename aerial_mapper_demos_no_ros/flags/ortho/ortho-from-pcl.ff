@@ -1,13 +1,13 @@
 --alsologtostderr=true
 --v=200
 --ortho_from_pcl_data_directory=/tmp/
---ortho_from_pcl_point_cloud_filename=point_cloud.xyz
+--ortho_from_pcl_point_cloud_filename=pointcloud.txt
 --ortho_from_pcl_interpolation_radius=10
 --ortho_from_pcl_use_adaptive_interpolation=false
 --ortho_from_pcl_show_orthomosaic_opencv=true
 --ortho_from_pcl_orthomosaic_jpg_filename=/tmp/orthomosaic_from_pcl.jpg
 --ortho_from_pcl_orthomosaic_resolution=1.0
 --ortho_from_pcl_orthomosaic_easting_min=-400.0
---ortho_from_pcl_orthomosaic_easting_max=200.0
+--ortho_from_pcl_orthomosaic_easting_max=400.0
 --ortho_from_pcl_orthomosaic_northing_min=-200.0
 --ortho_from_pcl_orthomosaic_northing_max=400.0

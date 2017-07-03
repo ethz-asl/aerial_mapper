@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
   google::InstallFailureSignalHandler();
   // TODO(hitimo): Remove ROS dependency here.
   ros::init(argc, argv, "ortho_from_pcl");
+  ros::NodeHandle nh;
 
   // Parse input parameters.
   const std::string& filename_point_cloud =

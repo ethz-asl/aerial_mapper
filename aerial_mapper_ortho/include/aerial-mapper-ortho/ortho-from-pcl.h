@@ -61,6 +61,7 @@ class OrthoFromPcl {
                Eigen::Vector3d>::type& pointcloud,
                const std::vector<int>& intensities);
  private:
+  void printParams() const;
   Settings settings_;
   PointCloud<double> cloud_kdtree_;
 };
