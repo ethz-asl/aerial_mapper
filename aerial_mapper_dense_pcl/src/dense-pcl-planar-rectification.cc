@@ -41,11 +41,9 @@ PlanarRectification::PlanarRectification(
   LOG(INFO) << "Camera-IMU extrinsics T_B_C = " << std::endl
             << T_B_C_.getTransformationMatrix();
 
-
-std::cout << "start advertising" << std::endl;
   pub_undistorted_image_ =
       image_transport_.advertise("/planar_rectification/undistorted", 1);
-  std::cout << "end advertising" << std::endl;
+
   pub_point_cloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>(
       "/planar_rectification/point_cloud", 1);
 
@@ -191,7 +189,7 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
     ros::Time timestamp = ros::Time::now();
     Utils::convertCvPclToRosPCL2Msg(point_cloud, point_cloud_intensity,
                                     "/world", timestamp, point_cloud_msg);
-    //pub_point_cloud_.publish(point_cloud_msg);
+    pub_point_cloud_.publish(point_cloud_msg);
 
     //     pcl::PointCloud<pcl::PointXYZ> cloud;
     //     pcl::fromROSMsg(point_cloud_msg, cloud);
@@ -277,7 +275,7 @@ void PlanarRectification::publishUndistortedImage(const cv::Mat& image) {
   msg.header.frame_id = "world";
   sensor_msgs::fillImage(msg, sensor_msgs::image_encodings::MONO8, image.rows,
                          image.cols, image.cols, image.data);
-  //pub_undistorted_image_.publish(msg);
+  pub_undistorted_image_.publish(msg);
 }
 
 }  // namespace dense_pcl
