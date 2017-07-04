@@ -12,7 +12,7 @@
 #include <aerial-mapper-thirdparty/gps-conversions.h>
 #include <aslam/pipeline/undistorter.h>
 #include <aslam/pipeline/undistorter-mapped.h>
-
+#include <maplab-common/progress-bar.h>
 
 namespace ortho {
 
@@ -55,7 +55,6 @@ void OrthoBackwardGrid::processBatch(const Poses& T_G_Cs,
   CHECK(T_G_Cs.size() == images.size());
   LOG(INFO) << "images.size() = " << images.size();
   LOG(INFO) << "T_G_Cs.size() = " << T_G_Cs.size();
-
   CHECK(ncameras_);
   const aslam::Camera& camera = ncameras_->getCamera(kFrameIdx);
 
@@ -164,8 +163,7 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
   CHECK(T_G_Cs.size() == images.size());
   LOG(INFO) << "images.size() = " << images.size();
   LOG(INFO) << "T_G_Cs.size() = " << T_G_Cs.size();
-
-  printParams();
+  CHECK(ncameras_);
   const aslam::Camera& camera = ncameras_->getCamera(kFrameIdx);
 
   // Define the grid.
@@ -202,9 +200,12 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
 
   const ros::Time time1 = ros::Time::now();
   // Loop over all images.
+  common::ProgressBar progress_bar(static_cast<size_t>(images.size()));
   for (size_t i = 0u; i < images.size(); ++i) {
+    progress_bar.increment();
     const Pose& T_G_C = T_G_Cs[i];
     std::vector<cv::Point2f> ground_points, image_points;
+    CHECK(border_keypoints_.cols() == 4u);
     for (int border_pixel_index = 0;
          border_pixel_index < border_keypoints_.cols();
          ++border_pixel_index) {
@@ -226,6 +227,7 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
     double x_max, x_min, y_max, y_min;
     x_max = y_max = 0.0;
     x_min = y_min = std::numeric_limits<double>::max();
+    CHECK(ground_points.size() == 4u);
     for (const cv::Point2f& ground_point : ground_points) {
       if (ground_point.x > x_max) {
         x_max = ground_point.x;
@@ -303,8 +305,17 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
 
 void OrthoBackwardGrid::printParams() const {
   const int nameWidth = 30;
+  std::string mode = "";
+  if (settings_.mode == Mode::Batch) {
+    mode = "batch";
+  } else if (settings_.mode == Mode::Incremental) {
+    mode = "incremental";
+  }
   std::cout << std::string(50, '*') << std::endl
             << "Starting Orthomosaic image generation" << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Mode: " << std::left << std::setw(nameWidth)
+            << mode << std::endl
             << std::left << std::setw(nameWidth)
             << " - Easting_min: " << std::left << std::setw(nameWidth)
             << std::to_string(settings_.orthomosaic_easting_min) << std::endl
@@ -315,8 +326,11 @@ void OrthoBackwardGrid::printParams() const {
             << " - Easting_max: " << std::left << std::setw(nameWidth)
             << std::to_string(settings_.orthomosaic_easting_max) << std::endl
             << std::left << std::setw(nameWidth)
-            << " - Resolution" << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_resolution) << std::endl;
+            << " - Resolution:" << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_resolution) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Elevation (if no DSM):" << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.orthomosaic_elevation_m) << std::endl;
   std::cout << std::string(50, '*') << std::endl;
 }
 
