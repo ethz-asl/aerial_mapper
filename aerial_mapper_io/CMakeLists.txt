@@ -4,6 +4,9 @@ project(aerial_mapper_io)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
+find_package(GDAL)
+include_directories(${GDAL_INCLUDE_DIRS})
+
 #############
 # LIBRARIES #
 #############
@@ -17,6 +20,9 @@ SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} 
 cs_add_library(${PROJECT_NAME}
   src/aerial-mapper-io.cc
 )
+
+add_dependencies(${PROJECT_NAME} ${GDAL_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${GDAL_LIBRARY})
 
 #############
 # QTCREATOR #
