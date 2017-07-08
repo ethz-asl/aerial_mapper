@@ -1,5 +1,5 @@
---alsologtostderr=true
---v=1000
+--alsologtostderr=false
+--v=0
 --backward_grid_data_directory=/media/timo/scnd/catkin_ws_aerial_mapper/src/aerial_mapper/data/
 --backward_grid_filename_poses=opt_poses.txt
 --backward_grid_prefix_images=opt_image_
@@ -9,7 +9,7 @@
 --backward_grid_orthomosaic_easting_max=465056.47
 --backward_grid_orthomosaic_northing_max=5272700.0
 --backward_grid_orthomosaic_resolution=1.0
---backward_grid_show_orthomosaic_opencv=true
+--backward_grid_show_orthomosaic_opencv=false
 --backward_grid_save_orthomosaic_jpg=true
 --backward_grid_orthomosaic_jpg_filename=/tmp/orthomosaic_incremental.jpg
 --backward_grid_orthomosaic_elevation_m=414.087

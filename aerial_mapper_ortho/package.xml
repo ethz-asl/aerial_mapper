@@ -27,5 +27,7 @@
   <depend>maplab_common</depend>
   <depend>minkindr_conversions</depend>
   <depend>opencv3_catkin</depend>
+  <depend>grid_map_core</depend>
+  <depend>grid_map_cv</depend>
 
 </package>

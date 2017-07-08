@@ -47,6 +47,7 @@ struct SettingsGrid {
   double orthomosaic_elevation_m = 0.0;
   bool use_digital_elevation_map = false;
   Mode mode = Mode::Batch;
+  bool use_grid_map = true;
 };
 
 class OrthoBackwardGrid {
@@ -57,8 +58,12 @@ class OrthoBackwardGrid {
                     const SettingsGrid& settings);
   void processBatch(const Poses& T_G_Cs,
                     const Images& images);
+  void processBatchGridmap(const Poses& T_G_Cs,
+                           const Images& images);
   void processIncremental(const Poses& T_G_Cs,
                           const Images& images);
+  void processIncrementalGridmap(const Poses& T_G_Cs,
+                                 const Images& images);
 
  private:
   void printParams() const;
