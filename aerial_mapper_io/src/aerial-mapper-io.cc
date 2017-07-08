@@ -143,6 +143,90 @@ void AerialMapperIO::loadPointCloudFromFile(
   CHECK(point_cloud_xyz->size() > 0);
 }
 
+void AerialMapperIO::toGeoTiff(    const cv::Mat& orthomosaic,
+                                   const Eigen::Vector2d& xy,
+                                   const std::string& geotiff_filename) {
+
+
+  // Create a geotiff with GDAL.
+  GDALAllRegister();
+
+  //  const char *pszFormat = "GTiff";
+  std::string name = "GTiff";
+  GDALDriver *poDriver;
+  char **papszMetadata;
+  poDriver = GetGDALDriverManager()->GetDriverByName(name.c_str());
+  //  if( poDriver == NULL )
+  //    exit( 1 );
+  papszMetadata = poDriver->GetMetadata();
+  if( CSLFetchBoolean( papszMetadata, GDAL_DCAP_CREATE, FALSE ) )
+    printf( "Driver %s supports Create() method.\n", name.c_str() );
+  if( CSLFetchBoolean( papszMetadata, GDAL_DCAP_CREATECOPY, FALSE ) )
+    printf( "Driver %s supports CreateCopy() method.\n", name.c_str() );
+
+  GDALDataset* poDstDS;
+  char **papszOptions = NULL;
+
+  int height = orthomosaic.rows;
+  int width = orthomosaic.cols;
+  std::cout << "height = " << height << std::endl;
+  std::cout << "width = " << width << std::endl;
+  poDstDS = poDriver->Create(geotiff_filename.c_str(), width, height,
+                             1, GDT_Byte, papszOptions );
+
+  //double adfGeoTransform[6] = {464736.27, 1.0, 0.0, 5272359.16, 0.0, -1.0};
+  double adfGeoTransform[6] = {464499.00, 1.0, 0.0, 5.2727e+06, 0.0, -1.0};
+  //{ 444720, 30, 0, 3751320, 0, -30 };
+  OGRSpatialReference oSRS;
+  char *pszSRS_WKT = NULL;
+  GDALRasterBand *poBand;
+  GByte abyRaster[512*512];
+  poDstDS->SetGeoTransform(adfGeoTransform );
+  //  oSRS.SetUTM( 11, TRUE );
+  //  oSRS.SetWellKnownGeogCS( "NAD27" );
+
+  oSRS.SetProjCS( "UTM 32 (WGS84) in northern hemisphere." );
+  oSRS.SetWellKnownGeogCS( "WGS84" );
+  oSRS.SetUTM(32, TRUE );
+  oSRS.exportToWkt( &pszSRS_WKT );
+  poDstDS->SetProjection( pszSRS_WKT );
+
+  CPLFree( pszSRS_WKT );
+  // poBand = poDstDS->GetRasterBand(1);
+  //  poBand->RasterIO( GF_Write, 0, 0, 512, 512,
+  //                    abyRaster, 512, 512, GDT_Byte, 0, 0 );
+
+  int nx_offset = 0;
+  int ny_offset = 0;
+  int nx_size = width;
+  int ny_size = height;
+  int nBufxSize = width;
+  int nBufySize = height;
+  unsigned char pdata[width * height];
+
+
+  for (size_t y = 0u; y < height; ++y) {
+    for (size_t x = 0u; x < width; ++x) {
+      CHECK(x < width);
+      CHECK(y < height);
+//      std::cout << "x = " << x << ", y = " << y << ", access. y*width+x = " << y*width+x << std::endl;
+      pdata[x + y * width]= orthomosaic.at<uchar>(y,x);
+    }
+  }
+
+  //  for (int n=0; n<width; n++) {
+  //    for (int m=0; m<height; m++) {
+  //      std::cout << "m = " << m << ", n = " << n << ", access. n*width+m = " << n*width+m << std::endl;
+
+  //    }
+  //  }
+  poDstDS->GetRasterBand(1)->RasterIO(GF_Write, nx_offset, ny_offset, nx_size, ny_size,
+                                      pdata, nBufxSize, nBufySize, GDT_Byte, 0, 0 );
+  /* Once we're done, close properly the dataset */
+  GDALClose( (GDALDatasetH) poDstDS );
+  std::cout << "closing the dataset." << std::endl;
+}
+
 void AerialMapperIO::writeDataToDEMGeoTiffColor(
     const cv::Mat& ortho_image, const Eigen::Vector2d& xy,
     const std::string& geotiff_filename) {

@@ -54,6 +54,10 @@ class AerialMapperIO {
   void writeDataToDEMGeoTiffColor(
       const cv::Mat& ortho_image, const Eigen::Vector2d& xy,
       const std::string& geotiff_filename);
+
+  void toGeoTiff(    const cv::Mat& orthomosaic,
+                                     const Eigen::Vector2d& xy,
+                                     const std::string& geotiff_filename);
 };
 }  // namespace io
 #endif  // namespace AERIAL_MAPPER_IO_H_
