@@ -17,7 +17,7 @@
 - [**aerial_mapper_io:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_io) Input/Output handler that reads/writes poses, intrinsics, point clouds, GeoTiffs etc.
 - [**aerial_mapper_ortho:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_ortho) (Ortho-)Mosaic generation.
 - [**aerial_mapper_ros:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_ros) Wrapper for ROS-dependent methods.
-- [**aerial_mapper_thirdparty:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_thirdparty) Package ontaining thirdparty code.
+- [**aerial_mapper_thirdparty:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_thirdparty) Package containing thirdparty code.
 - [**aerial_mapper_utils:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_utils) Package for common utility functions.
 
 <hr>
