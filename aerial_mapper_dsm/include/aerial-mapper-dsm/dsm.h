@@ -41,9 +41,9 @@ namespace dsm {
 struct Settings {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   int color_palette = 6;
-  int resolution = 2;
+  int resolution = 6;
   bool show_output = true;
-  int interpolation_radius = 10;
+  int interpolation_radius = 1.0;
   bool adaptive_interpolation = false;
   Eigen::Vector3d origin = Eigen::Vector3d(0.0, 0.0, 0.0);
 };
