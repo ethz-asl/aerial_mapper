@@ -29,6 +29,7 @@ DEFINE_string(backward_grid_orthomosaic_jpg_filename, "", "");
 DEFINE_double(backward_grid_orthomosaic_elevation_m, 0.0, "");
 DEFINE_bool(backward_grid_use_digital_elevation_map, true, "");
 DEFINE_bool(backward_grid_grid_mode_batch, true, "");
+DEFINE_bool(backward_grid_use_grid_map, true, "");
 
 
 int main(int  argc, char** argv) {
@@ -67,6 +68,8 @@ int main(int  argc, char** argv) {
       FLAGS_backward_grid_orthomosaic_elevation_m;
   settings.use_digital_elevation_map =
       FLAGS_backward_grid_use_digital_elevation_map;
+  settings.use_grid_map =
+      FLAGS_backward_grid_use_grid_map;
   if (FLAGS_backward_grid_grid_mode_batch) {
     settings.mode = ortho::Mode::Batch;
   } else {
