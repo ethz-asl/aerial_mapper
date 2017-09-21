@@ -21,6 +21,13 @@
 #include <gdal/gdal_priv.h>
 #include <gdal/ogr_spatialref.h>
 
+#include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/Pose.h>
+
+#include <minkindr_conversions/kindr_msg.h>
+#include <minkindr_conversions/kindr_tf.h>
+
 namespace io {
 
 AerialMapperIO::AerialMapperIO() {}
@@ -42,7 +49,55 @@ void AerialMapperIO::loadPosesFromFile(const PoseFormat& format,
     case PoseFormat::PIX4D:
       LOG(FATAL) << "Not yet implemented!";
     break;
+//    case PoseFormat::ROS:
+//      loadPosesFromFileRos(filename, T_G_Bs);
+//    break;
   }
+}
+
+void AerialMapperIO::loadPosesFromFileRos(
+    const std::string& filename, Poses* T_G_Bs,
+    std::vector<int64_t>* timestamps_ns) {
+  CHECK(T_G_Bs);
+  CHECK(!filename.empty()) << "Empty filename";
+  CHECK(timestamps_ns);
+  LOG(INFO) << "Loading body poses from: " << filename;
+  std::ifstream infile(filename);
+  double x, y, z, qw, qx, qy, qz;
+  double timestamp_ns;
+  // time, field.position.x, field.position.y, field.position.z,
+  // field.orientation.x, field.orientation.y, field.orientation.z, field.orientation.w
+  while (infile >> timestamp_ns >> x >> y >> z >> qx >> qy >> qz >> qw) {
+    //std::cout << "timestamp_ns = " << timestamp_ns << std::endl;
+    geometry_msgs::Pose pose;
+    geometry_msgs::Point t;
+    t.x = x;
+    t.y = y;
+    t.z = z;
+    pose.position =  t;
+
+    geometry_msgs::Quaternion q;
+    q.x = qx;
+    q.y = qy;
+    q.z = qz;
+    q.w = qw;
+
+    pose.orientation = q;
+    pose.position = t;
+
+    kindr::minimal::QuatTransformation T_G_B;
+    tf::poseMsgToKindr(pose, &T_G_B);
+
+    timestamps_ns->push_back(timestamp_ns);
+    T_G_Bs->push_back(T_G_B);
+
+    if (infile.eof()) {
+      break;
+    }
+  }
+  CHECK(T_G_Bs->size() > 0) << "No poses loaded.";
+  CHECK(T_G_Bs->size() == timestamps_ns->size());
+  LOG(INFO) << "T_G_Bs->size() = " << T_G_Bs->size();
 }
 
 void AerialMapperIO::loadPosesFromFileStandard(
@@ -65,6 +120,91 @@ void AerialMapperIO::loadPosesFromFileStandard(
   LOG(INFO) << "T_G_Bs->size() = " << T_G_Bs->size();
 }
 
+void AerialMapperIO::convertFromSimulation() {
+  std::string directory = "/tmp/to_convert/";
+  std::string filename_vi_imu_poses = "vi_imu_poses.csv";
+  std::string filename_blender_id_time = "blender_id_time.csv";
+  std::string new_directory = "/tmp/simulation2/";
+  toStandardFormat(directory, filename_vi_imu_poses,
+                   filename_blender_id_time, new_directory);
+}
+
+void AerialMapperIO::toStandardFormat(
+    const std::string& directory,
+    const std::string& filename_vi_imu_poses,
+    const std::string& filename_blender_id_time,
+    const std::string& new_directory) {
+
+  // Load all available body poses with corresponding timestamps.
+  Poses T_G_Bs;
+  std::vector<int64_t> timestamps_ns;
+  const std::string& path_filename_vi_imu_poses =
+      directory + filename_vi_imu_poses;
+  LOG(INFO) << "Loading from " << path_filename_vi_imu_poses;
+  loadPosesFromFileRos(path_filename_vi_imu_poses, &T_G_Bs,
+                                  &timestamps_ns);
+
+  // Load the names and timestamps of the images.
+  const std::string& path_filename_blender_id_time =
+     directory + filename_blender_id_time;
+  std::ifstream infile(path_filename_blender_id_time);
+  double id, image_name;
+  std::vector<std::string> image_names;
+  std::vector<int64_t> image_timestamps;
+  LOG(INFO) << "Loading from " << path_filename_blender_id_time;
+  while (infile >> id >> image_name) {
+    const std::string& image_name_string =
+        std::to_string(static_cast<int64_t>(image_name));
+    int64_t image_timestamp = static_cast<int64_t>(image_name) - 1;
+    image_names.push_back(image_name_string);
+    image_timestamps.push_back(image_timestamp);
+    if (infile.eof()) {break;}
+  }
+
+  // Loop over image timestamps and find the corresponding poses.
+  Poses T_G_Bs_associated;
+  CHECK(timestamps_ns.size() == T_G_Bs.size());
+  for (size_t i = 0u; i < image_timestamps.size(); ++i) {
+    bool found_pose_for_image = false;
+    Pose T_G_B;
+    for (size_t j = 0u; j < timestamps_ns.size(); ++j) {
+      if (timestamps_ns[j] == image_timestamps[i]) {
+        found_pose_for_image = true;
+        T_G_B = T_G_Bs[j];
+      }
+    }
+    CHECK(found_pose_for_image);
+    T_G_Bs_associated.push_back(T_G_B);
+  }
+  CHECK(T_G_Bs_associated.size() == image_timestamps.size());
+  CHECK(T_G_Bs_associated.size() == image_names.size());
+
+  // Save body poses to file with standard naming.ca
+  std::string path_filename_poses = new_directory + "opt_poses.txt";
+  std::ofstream fs;
+  fs.open(path_filename_poses.c_str());
+  for (const Pose& T_G_B : T_G_Bs_associated) {
+    const Eigen::Vector3d& t = T_G_B.getPosition();
+    const aslam::Quaternion& q = T_G_B.getRotation();
+    fs << t(0) << " " << t(1) << " " << t(2) << " "
+       << q.w() << " " << q.x() << " " << q.y() << " " << q.z() << std::endl;
+  }
+  fs.close();
+
+  // Load images from file.
+  Images images;
+  const std::string directory_images = directory + "cam0/";
+  loadImagesFromFile(directory_images, image_names, &images);
+
+  // Save with standard naming.
+  for (size_t i = 0u; i < images.size(); ++i) {
+    const std::string image_filename = new_directory + "image_"
+        + std::to_string(i) + ".jpg";
+    cv::imwrite(image_filename, images[i]);
+  }
+}
+
+
 void AerialMapperIO::loadImagesFromFile(
     const std::string& filename_base, size_t num_poses, Images* images) {
   CHECK(images);
@@ -72,6 +212,24 @@ void AerialMapperIO::loadImagesFromFile(
   for (size_t i = 0u; i < num_poses; ++i) {
     const std::string& filename =
         filename_base + std::to_string(i) + ".jpg";
+    cv::Mat image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    cv::imshow("Image", image);
+    cv::waitKey(1);
+    images->push_back(image);
+  }
+  CHECK(images->size() > 0) << "No images loaded.";
+  LOG(INFO) << "images->size() = " << images->size();
+}
+
+void AerialMapperIO::loadImagesFromFile(
+    const std::string& directory, std::vector<std::string> image_names,
+    Images* images) {
+  CHECK(images);
+  LOG(INFO) << "Loading images from directory: " << directory;
+  for (const std::string image_name : image_names) {
+    const std::string& filename =
+        directory + image_name + ".png";
+    std::cout << "tryin to load " << filename << std::endl;
     cv::Mat image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
     cv::imshow("Image", image);
     cv::waitKey(1);
@@ -101,6 +259,43 @@ void AerialMapperIO::subtractOriginFromPoses(const Eigen::Vector3d& origin,
   for (size_t i = 0u; i < T_G_Bs->size(); ++i) {
     (*T_G_Bs)[i].getPosition() = (*T_G_Bs)[i].getPosition() - origin;
   }
+}
+
+void AerialMapperIO::exportPix4dGeofile(const Poses& T_G_Cs,
+                                        const Images& images) {
+  CHECK(images.size() == T_G_Cs.size());
+  std::string output_directory = "/tmp/pix4d";
+  std::string filename = output_directory + "/geofile.txt";
+  LOG(INFO) << "Writing geofile in " << filename;
+  std::ofstream fs;
+  fs.open(filename.c_str());
+
+  size_t georeference_every_nth_image = 1;
+  size_t image_number = 0u;
+  size_t i = 0u;
+  for (const Image& image : images) {
+    ++image_number;
+    if (image_number % georeference_every_nth_image == 0) {
+      std::stringstream ss;
+      ss << std::setw(10) << std::setfill('0') << image_number;
+      std::string image_filename =
+          output_directory + "/image_" + ss.str() + ".jpeg";
+      cv::imwrite(image_filename, image);
+      cv::imshow("image", image);
+      cv::waitKey(100);
+      LOG(INFO) << "Saved image " << image_filename;
+      Eigen::Vector3d xyz = T_G_Cs[i].getPosition();
+
+      fs << "image_"
+         << ss.str()
+         << ".jpeg "
+         << std::setprecision(15) << xyz(0) << " "
+         << std::setprecision(15) << xyz(1) << " "
+         << std::setprecision(15) << xyz(2) << std::endl;
+      ++i;
+    }
+  }
+  fs.close();
 }
 
 void AerialMapperIO::loadPointCloudFromFile(

@@ -21,7 +21,7 @@ typedef std::vector<Image> Images;
 
 namespace io {
 
-enum PoseFormat { Standard, COLMAP, PIX4D };
+enum PoseFormat { Standard, COLMAP, PIX4D, ROS };
 
 class AerialMapperIO {
  public:
@@ -36,8 +36,17 @@ class AerialMapperIO {
   void loadImagesFromFile(const std::string& filename_base,
                           size_t num_poses,
                           Images* images);
+
+  void loadImagesFromFile(
+      const std::string& directory, std::vector<std::string> image_names,
+      Images* images);
+
   aslam::NCamera::Ptr loadCameraRigFromFile(
        const std::string& filename_ncameras_yaml);
+
+  void loadPosesFromFileRos(
+      const std::string& filename, Poses* T_G_Bs,
+      std::vector<int64_t>* timestamps_ns);
 
   void loadPointCloudFromFile(
       const std::string& filename_point_cloud,
@@ -58,6 +67,16 @@ class AerialMapperIO {
   void toGeoTiff(    const cv::Mat& orthomosaic,
                                      const Eigen::Vector2d& xy,
                                      const std::string& geotiff_filename);
+
+  void toStandardFormat(
+      const std::string& directory,
+      const std::string& filename_vi_imu_poses,
+      const std::string& filename_blender_id_time,
+      const std::string& new_directory) ;
+
+  void convertFromSimulation();
+
+  void exportPix4dGeofile(const Poses& T_G_Cs, const Images& images);
 };
 }  // namespace io
 #endif  // namespace AERIAL_MAPPER_IO_H_
