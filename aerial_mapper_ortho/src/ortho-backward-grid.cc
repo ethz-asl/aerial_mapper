@@ -18,6 +18,14 @@
 #include <grid_map_core/GridMap.hpp>
 #include <grid_map_cv/grid_map_cv.hpp>
 #include <aerial-mapper-io/aerial-mapper-io.h>
+#include <aerial-mapper-utils/utils-nearest-neighbor.h>
+
+#include <iostream>
+#include <fstream>
+#include <grid_map_cv/GridMapCvConverter.hpp>
+#include <grid_map_msgs/GridMap.h>
+#include <grid_map_ros/grid_map_ros.hpp>
+#include <math.h>
 
 namespace ortho {
 
@@ -71,8 +79,10 @@ void OrthoBackwardGrid::processBatchGridmap(const Poses& T_G_Cs,
   CHECK(ncameras_);
   const aslam::Camera& camera = ncameras_->getCamera(kFrameIdx);
 
+
   // Create grid map.
-  grid_map::GridMap map({"ortho"});
+  grid_map::GridMap map({"ortho", "elevation","elevation_angle", "num_observations", "elevation_angle_first_view", "delta", "observation_index","observation_index_first"});
+  map["elevation"].setConstant(NAN);//-10000);
   map.setFrameId("map");
   const Eigen::Vector2d bottom_left = Eigen::Vector2d(
         settings_.orthomosaic_easting_min,
@@ -93,13 +103,119 @@ void OrthoBackwardGrid::processBatchGridmap(const Poses& T_G_Cs,
       + Eigen::Vector2d(static_cast<double>(width_east)/2.0,
                         -static_cast<double>(height_north)/2.0);
 
-  map.setGeometry(grid_map::Length(height_north, width_east), 1.0,
+  map.setGeometry(grid_map::Length(height_north, width_east), 0.5,
                   grid_map::Position(center(1), center(0)));
   ROS_INFO("Created map with size %f x %f m (%i x %i cells).\n The center of the map is located at (%f, %f) in the %s frame.",
     map.getLength().x(), map.getLength().y(),
     map.getSize()(0), map.getSize()(1),
     map.getPosition().x(), map.getPosition().y(), map.getFrameId().c_str());
 
+   Aligned<std::vector, Eigen::Vector3d>::type pointcloud;
+   std::string filename_point_cloud = "/tmp/pointcloud.txt";
+  CHECK(filename_point_cloud != "");
+  LOG(INFO) << "Loading pointcloud from: " << filename_point_cloud;
+  std::ifstream infile(filename_point_cloud);
+  double x, y, z;
+  int intensity;
+  while (infile >> x >> y >> z >> intensity) {
+      pointcloud.push_back(Eigen::Vector3d(x, y, z));
+    if (infile.eof()) break;
+  }
+  CHECK(pointcloud.size() > 0);
+
+  // Insert pointcloud in kdtree.
+  PointCloud<double> cloud_kdtree;
+  cloud_kdtree.pts.resize(pointcloud.size());
+
+  LOG(INFO) << "Num points: " << pointcloud.size();
+  for (size_t i = 0u; i < pointcloud.size(); ++i) {
+    cloud_kdtree.pts[i].x = pointcloud[i](0);
+    cloud_kdtree.pts[i].y = pointcloud[i](1);
+    cloud_kdtree.pts[i].z = pointcloud[i](2);
+  }
+
+  typedef PointCloudAdaptor<PointCloud<double> > PC2KD;
+  const PC2KD pc2kd(cloud_kdtree);
+  const size_t kDimensionKdTree = 2u;
+  const size_t kMaxLeaf = 100u;
+  typedef nanoflann::KDTreeSingleIndexAdaptor<
+      nanoflann::L2_Adaptor<double, PC2KD>, PC2KD, kDimensionKdTree>
+      my_kd_tree_t;
+  my_kd_tree_t index(kDimensionKdTree, pc2kd,
+                     nanoflann::KDTreeSingleIndexAdaptorParams(kMaxLeaf));
+  index.buildIndex();
+
+  for (grid_map::GridMapIterator it(map); !it.isPastEnd(); ++it) {
+    grid_map::Position position;
+    map.getPosition(*it, position);
+    double northing = position.x();
+    double easting = position.y();
+
+    double interp_radius = 5.0;
+    std::vector<std::pair<int, double> > indices_dists;
+    nanoflann::RadiusResultSet<double, int> resultSet(
+        interp_radius, indices_dists);
+    const double query_pt[3] = {-position.y(), position.x(), 0.0};
+    index.findNeighbors(resultSet, query_pt, nanoflann::SearchParams());
+
+    if (true) {
+      double lambda = 1.0;
+      while (resultSet.size() == 0u) {
+        //std::cout << "lambda * interp_radius = " << lambda * interp_radius << std::endl;
+        nanoflann::RadiusResultSet<double, int> tmp(
+            lambda * interp_radius, indices_dists);
+        index.findNeighbors(tmp, query_pt, nanoflann::SearchParams());
+        lambda *= 1.1;
+        if (lambda*interp_radius > 7.0) break;
+      }
+    }
+
+    bool samples_in_interpolation_radius = resultSet.size() > 0u;
+    if (samples_in_interpolation_radius) {
+      std::vector<double> distances;
+      std::vector<double> heights;
+      CHECK(resultSet.size() > 0);
+      distances.clear();
+      heights.clear();
+      for (const std::pair<int, double>& s : resultSet.m_indices_dists) {
+        distances.push_back(s.second);
+        heights.push_back(cloud_kdtree.pts[s.first].z);
+      }
+      CHECK(distances.size() > 0u);
+      CHECK(heights.size() > 0u);
+      CHECK(distances.size() == heights.size());
+      double idw_top = 0.0;
+      double idw_bottom = 0.0;
+      bool idw_perfect_match = false;
+      for (size_t i = 0u; i < heights.size(); ++i) {
+        if (!idw_perfect_match) {
+          CHECK(distances[i] > 0.0);
+          idw_top += heights[i] / (distances[i]);
+          idw_bottom += 1.0 / (distances[i]);
+        }
+      }
+
+      CHECK(idw_bottom > 0.0);
+      double idw_height = idw_top / idw_bottom;
+       map.at("elevation", *it) = idw_height;
+    } else {
+      map.at("elevation", *it) = NAN;//-1000000.0;
+    }
+  }
+
+  // Convert to image.
+  cv::Mat image_dsm;
+  grid_map::GridMapCvConverter::toImage<unsigned char, 1>(map, "elevation",CV_8UC1,
+                                                          -100, 100, image_dsm);
+
+  cv::Mat image_elevation;
+  grid_map::GridMapCvConverter::toImage<unsigned char, 3>(map, "elevation", CV_8UC3, -20, 50, image_elevation);
+
+  cv::imshow("image_dsm",image_dsm);
+  cv::imwrite("/tmp/elevation.jpg", image_elevation);
+  cv::waitKey(1);
+
+  //camera.removeDistortion();
   // TODO(hitimo): Re-enable the height map.
   // cv::Mat height_map;
   // loadHeightMap(FLAGS_orthomosaic_filename_height_map, &height_map);
@@ -124,10 +240,20 @@ void OrthoBackwardGrid::processBatchGridmap(const Poses& T_G_Cs,
 //                      cv::Scalar(255.0, 255.0, 255.0));
 //  Eigen::MatrixXi observation_map = Eigen::MatrixXi::Zero(
 //      static_cast<int>(width_east * d), static_cast<int>(height_north * d));
-
+#ifdef asdf
   ros::Time time1 = ros::Time::now();
   std::cout << "top_left = " << top_left.transpose() << std::endl;
   std::cout << "bottom_right = " << bottom_right.transpose() << std::endl;
+  map["ortho"].setConstant(255);
+  map["elevation_angle"].setConstant(NAN);
+  map["elevation_angle_first_view"].setConstant(NAN);
+  map["num_observations"].setConstant(NAN);
+  map["observation_index"].setConstant(NAN);
+  map["observation_index_first"].setConstant(NAN);
+  map["delta"].setConstant(NAN);
+  int viz_counter = 0;
+  int max_num_observations = 0;
+  double max_angle = 0.0;
   for (grid_map::GridMapIterator it(map); !it.isPastEnd(); ++it) {
     grid_map::Position position;
     map.getPosition(*it, position);/*
@@ -137,43 +263,141 @@ void OrthoBackwardGrid::processBatchGridmap(const Poses& T_G_Cs,
     CHECK(position.x() <= settings_.orthomosaic_northing_max);
     CHECK(position.x() >= settings_.orthomosaic_northing_min);
     double northing = position.x();
-    double easting = position.y();
-    const Eigen::Vector3d landmark_UTM(easting, northing,
-                                       settings_.orthomosaic_elevation_m);
-    // Loop over all images.
-     map.at("ortho", *it) = 255;
-    for (size_t i = 0u; i < images.size(); ++i) {
-      const Eigen::Vector3d& C_landmark =
-          T_G_Cs[i].inverse().transform(landmark_UTM);
-      Eigen::Vector2d keypoint;
-      const aslam::ProjectionResult& projection_result =
-          camera.project3(C_landmark, &keypoint);
+    double easting = -position.y();
+    Eigen::Vector3d landmark_UTM;
+    if (map.at("elevation", *it) > -100) {
+      landmark_UTM = Eigen::Vector3d(easting, northing,
+                                     map.at("elevation", *it));
 
-      // Check if keypoint visible.
-      const bool keypoint_visible =
-          (keypoint(0) >= 0.0) && (keypoint(1) >= 0.0) &&
-          (keypoint(0) < static_cast<double>(camera.imageWidth())) &&
-          (keypoint(1) < static_cast<double>(camera.imageHeight())) &&
-          (projection_result.getDetailedStatus() !=
-          aslam::ProjectionResult::POINT_BEHIND_CAMERA) &&
-          (projection_result.getDetailedStatus() !=
-          aslam::ProjectionResult::PROJECTION_INVALID);
-      if (keypoint_visible) {
-        // SIC! Order of keypoint x/y.
-        const int kp_y =
-            std::min(static_cast<int>(std::round(keypoint(1))),
-                     static_cast<int>(camera.imageHeight()) - 1);
-        const int kp_x =
-            std::min(static_cast<int>(std::round(keypoint(0))),
-                     static_cast<int>(camera.imageWidth()) - 1);
-        const double gray_value = images[i].at<uchar>(kp_y, kp_x);
-        //        orthomosaic.at<cv::Vec3b>(y, x) =
-        //            cv::Vec3b(gray_value, gray_value, gray_value);
-        map.at("ortho", *it) = gray_value;
-        break;
+     // std::cout << "elevation = " << map.at("elevation", *it) << std::endl;
+
+//            landmark_UTM = Eigen::Vector3d(easting, northing,
+//                                           settings_.orthomosaic_elevation_m);
+      //    }
+
+      //
+      // Loop over all images.
+      map.at("ortho", *it) = NAN;
+//      bool visual=false;
+//      if (++viz_counter%100==0) {
+//        visual=true;
+//      }
+      size_t index_optimal_elevation_angle = -1;
+      size_t index_first_elevation_angle = -1;
+      size_t num_observations = 0;
+      double value_first_view_elevation_angle = 0.0;
+      double value_optimal_elevation_angle = 0.0;
+      for (size_t i = 0u; i < images.size(); ++i) {
+        const Eigen::Vector3d& C_landmark =
+            T_G_Cs[i].inverse().transform(landmark_UTM);
+        Eigen::Vector2d keypoint;
+        const aslam::ProjectionResult& projection_result =
+            camera.project3(C_landmark, &keypoint);
+
+//        ROS_ERROR_STREAM("image: " << i);
+
+        // Check if keypoint visible.
+        const bool keypoint_visible =
+            (keypoint(0) >= 0.0) && (keypoint(1) >= 0.0) &&
+            (keypoint(0) < static_cast<double>(camera.imageWidth())) &&
+            (keypoint(1) < static_cast<double>(camera.imageHeight())) &&
+            (projection_result.getDetailedStatus() !=
+            aslam::ProjectionResult::POINT_BEHIND_CAMERA) &&
+            (projection_result.getDetailedStatus() !=
+            aslam::ProjectionResult::PROJECTION_INVALID);
+        if (keypoint_visible) {
+//          ROS_ERROR_STREAM("VISIBLE");
+          Eigen::Vector3d u = C_landmark;
+          double norm_u = sqrt(u(0)*u(0) + u(1)*u(1) + u(2)*u(2));
+          double alpha = asin(std::fabs(u(2))/norm_u);
+//          if (visual) {
+//          // Compute the elevation angle wrt ground plane.
+
+//          std::cout << "alpha = " << alpha << std::endl;
+//          cv::Mat image_viz;
+//          images[i].copyTo(image_viz);
+//          cv::Mat image_viz_c;
+//          cv::cvtColor(image_viz, image_viz_c, CV_GRAY2RGB);
+//          cv::circle(image_viz_c, cv::Point(keypoint(0),keypoint(1)),4,cv::Scalar(255,0,0));
+//          cv::imshow("image", image_viz_c);
+//          cv::waitKey(0);
+//          }
+
+          if (num_observations == 0) {
+            index_first_elevation_angle = i;
+            value_first_view_elevation_angle = std::fabs(alpha) ;
+          }
+          ++num_observations;
+          CHECK(alpha > 0.0);
+
+          if (std::fabs(alpha) > value_optimal_elevation_angle) {
+            value_optimal_elevation_angle = std::fabs(alpha) ;
+            index_optimal_elevation_angle = i;
+          }
+//          std::cout << "value_opt = " << value_optimal_elevation_angle << std::endl;
+//          std::cout << "value_first = " << value_first_view_elevation_angle << std::endl;
+//          std::cout << "index_opt = " << index_optimal_elevation_angle << std::endl;
+//          std::cout << "index_first = " << index_first_elevation_angle << std::endl;
+          //cv::waitKey(0);
+
+          if (std::fabs(alpha) > max_angle) {
+            max_angle = std::fabs(alpha);
+          }
+\
+//          #ifdef asfd
+//          // SIC! Order of keypoint x/y.
+//          const int kp_y =
+//              std::min(static_cast<int>(std::round(keypoint(1))),
+//                       static_cast<int>(camera.imageHeight()) - 1);
+//          const int kp_x =
+//              std::min(static_cast<int>(std::round(keypoint(0))),
+//                       static_cast<int>(camera.imageWidth()) - 1);
+//          const double gray_value = images[i].at<uchar>(kp_y, kp_x);
+//          //        orthomosaic.at<cv::Vec3b>(y, x) =
+//          //            cv::Vec3b(gray_value, gray_value, gray_value);
+//          map.at("ortho", *it) = gray_value;
+//          //break;
+//          #endif
+        }
+      } // loop all images
+      CHECK(index_optimal_elevation_angle != -1);
+      CHECK(index_first_elevation_angle != -1);
+      if (num_observations> max_num_observations) {
+        max_num_observations = num_observations;
       }
+      map.at("num_observations", *it) = num_observations;
+      map.at("elevation_angle",*it) = value_optimal_elevation_angle*1000;
+      map.at("observation_index",*it) = index_optimal_elevation_angle;
+      map.at("observation_index_first",*it) = index_first_elevation_angle;
+      map.at("delta",*it) = std::fabs(index_optimal_elevation_angle*1000 - index_first_elevation_angle*1000);
+
+          //value_optimal_elevation_angle
+          //-value_first_view_elevation_angle;
+//      std::cout << "delta = " << value_optimal_elevation_angle
+//                   - value_first_view_elevation_angle << std::endl;
+      map.at("elevation_angle_first_view",*it) = value_first_view_elevation_angle*1000;
+      const Eigen::Vector3d& C_landmark =
+          T_G_Cs[index_first_elevation_angle].inverse().transform(landmark_UTM);
+      Eigen::Vector2d keypoint;
+      camera.project3(C_landmark, &keypoint);
+
+      const int kp_y =
+          std::min(static_cast<int>(std::round(keypoint(1))),
+                   static_cast<int>(camera.imageHeight()) - 1);
+      const int kp_x =
+          std::min(static_cast<int>(std::round(keypoint(0))),
+                   static_cast<int>(camera.imageWidth()) - 1);
+      const double gray_value = images[index_first_elevation_angle].at<uchar>(kp_y, kp_x);
+      map.at("ortho", *it) = gray_value;
+    } else {
+      map.at("ortho", *it) = 255;
     }
   }
+
+
+
+  std::cout << "max_num_obserations = " << max_num_observations << std::endl;
+  std::cout << "max_angle = " << max_angle << std::endl;
   const ros::Time time2 = ros::Time::now();
   const ros::Duration& delta_time = time2 - time1;
   LOG(INFO) << "Time elapsed: " << delta_time;
@@ -184,7 +408,16 @@ void OrthoBackwardGrid::processBatchGridmap(const Poses& T_G_Cs,
   cv::Mat image;
   grid_map::GridMapCvConverter::toImage<unsigned char, 1>(map, "ortho",CV_8UC1,
                                                           minValue, maxValue, image);
-  cv::imwrite("/tmp/image.jpg", image);
+
+
+  // Convert to image.
+  cv::Mat image_num_obs;
+  grid_map::GridMapCvConverter::toImageTimo(map, "observation_index", CV_8UC3, 76, 305, image_num_obs);
+  cv::imshow("image_num_obs",image_num_obs);
+  cv::waitKey(0);
+
+
+  cv::imwrite("/tmp/image_with_height_no_dist_first_view.jpg", image);
   cv::Mat dst;               // dst must be a different Mat
   cv::flip(image, dst, 1);
   cv::imwrite("/tmp/image_flipped.jpg", dst);
@@ -193,7 +426,19 @@ void OrthoBackwardGrid::processBatchGridmap(const Poses& T_G_Cs,
 //                                        "/tmp/test.tiff");
   io_handler.toGeoTiff(dst, top_left,  "/tmp/test2.tiff");
   cv::imshow("image", dst);
-  cv::waitKey(0);
+  #endif
+  cv::waitKey(1);
+  ros::NodeHandle node_handle_;
+  ros::Publisher pub_grid_map_;
+ pub_grid_map_ = node_handle_.advertise<grid_map_msgs::GridMap>("grid_map", 1, true);
+  map.setTimestamp(ros::Time::now().toNSec());
+  grid_map_msgs::GridMap message;
+  grid_map::GridMapRosConverter::toMessage(map, message);
+  pub_grid_map_.publish(message);
+
+  std::cout << "publish" << std::endl;
+
+  ros::spin();
 
 #ifdef adf
   size_t y_limit = static_cast<int>(height_north * d) - 1;
@@ -527,6 +772,7 @@ void OrthoBackwardGrid::processIncremental(const Poses& T_G_Cs,
 
 void OrthoBackwardGrid::processIncrementalGridmap(const Poses& T_G_Cs,
                                                   const Images& images) {
+#ifdef asdf
   CHECK(!T_G_Cs.empty());
   CHECK(T_G_Cs.size() == images.size());
   LOG(INFO) << "images.size() = " << images.size();
@@ -656,6 +902,7 @@ void OrthoBackwardGrid::processIncrementalGridmap(const Poses& T_G_Cs,
   if (settings_.save_orthomosaic_jpg) {
     cv::imwrite(settings_.orthomosaic_jpg_filename, orthomosaic);
   }
+#endif
 }
 
 void OrthoBackwardGrid::printParams() const {
@@ -685,7 +932,10 @@ void OrthoBackwardGrid::printParams() const {
             << std::to_string(settings_.orthomosaic_resolution) << std::endl
             << std::left << std::setw(nameWidth)
             << " - Elevation (if no DSM):" << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_elevation_m) << std::endl;
+            << std::to_string(settings_.orthomosaic_elevation_m) << std::endl
+            << std::left << std::setw(nameWidth)
+            << " - Use grid_map:" << std::left << std::setw(nameWidth)
+            << std::to_string(settings_.use_grid_map) << std::endl;
   std::cout << std::string(50, '*') << std::endl;
 }
 
