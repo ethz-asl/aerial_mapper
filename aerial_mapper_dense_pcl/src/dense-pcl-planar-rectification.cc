@@ -15,6 +15,12 @@
 // PACKAGE
 #include "aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h"
 
+
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PolygonStamped.h>
+#include <minkindr_conversions/kindr_tf.h>
+#include <minkindr_conversions/kindr_msg.h>
+
 namespace dense_pcl {
 
 PlanarRectification::PlanarRectification(
@@ -46,6 +52,15 @@ PlanarRectification::PlanarRectification(
 
   pub_point_cloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>(
       "/planar_rectification/point_cloud", 1);
+
+  pub_ground_points_ =
+      node_handle_.advertise<geometry_msgs::PolygonStamped>(
+        "/orthomosaic/ground_points", 1000);
+
+
+  pub_pose_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_G_B", 1);
+  pub_pose_C_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_G_C", 1);
+pub_pose_C3_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_G_C3", 1);
 
   // Create a planar rectification parameter object with default values
   dense::PlanarRectificationParams::Ptr parameters(
@@ -126,6 +141,92 @@ PlanarRectification::PlanarRectification(
 void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
                                    const cv::Mat& image_raw) {
   VLOG(0) << "add frame";
+
+#define publish_frames
+#ifdef publish_frames
+  border_keypoints_.resize(Eigen::NoChange, 4);
+  const size_t width = ncameras_->getCameraShared(0u)->imageWidth();
+  const size_t height = ncameras_->getCameraShared(0u)->imageHeight();
+  border_keypoints_.col(0) = Eigen::Vector2d(0.0, 0.0);
+  border_keypoints_.col(1) =
+      Eigen::Vector2d(static_cast<double>(width - 1u), 0.0);
+  border_keypoints_.col(2) =
+      Eigen::Vector2d(static_cast<double>(width - 1u),
+                      static_cast<double>(height - 1u));
+  border_keypoints_.col(3) =
+      Eigen::Vector2d(0.0, static_cast<double>(height - 1u));
+
+
+  geometry_msgs::PolygonStamped polygon;
+  polygon.header.stamp = ros::Time::now();
+  geometry_msgs::PolygonStamped polygon_stamped;
+  polygon_stamped.header.stamp = ros::Time::now();
+  polygon_stamped.header.frame_id = "/world";
+  polygon_stamped.polygon.points.reserve(4);
+
+  aslam::Transformation T_G_C = T_G_B * ncameras_->get_T_C_B(kFrameIdx).inverse();
+  std::cout << "T_G_C = " << std::endl << T_G_C.getTransformationMatrix() << std::endl;
+
+  Eigen::Matrix4d T_yaw_;
+    double yaw_ = M_PI/2;
+    T_yaw_ << cos(yaw_), -sin(yaw_), 0,0,
+        sin(yaw_), cos(yaw_), 0,0,
+        0, 0, 1, 0,
+        0, 0, 0, 1;
+    aslam::Transformation T_yaw = aslam::Transformation(T_yaw_);
+
+
+    aslam::Transformation T_G_C3(T_G_C.getPosition(),
+                                 T_yaw.getRotation() * T_G_C.getRotation());
+  std::cout << "T_G_C3 =" << std::endl << T_G_C3.getTransformationMatrix() << std::endl;
+
+  for (int border_pixel_index = 0; border_pixel_index < border_keypoints_.cols();
+       ++border_pixel_index) {
+    Eigen::Vector3d C_ray;
+    const Eigen::Vector2d& keypoint = border_keypoints_.col(border_pixel_index);
+    ncameras_->getCameraShared(kFrameIdx)->backProject3(keypoint, &C_ray);
+    const double scale = - (T_G_C3.getPosition()(2) - 50.0) / (T_G_C3.getRotationMatrix() * C_ray)(2);
+    const Eigen::Vector3d& G_landmark = T_G_C3.getPosition() + scale * T_G_C3.getRotationMatrix() * C_ray;
+    std::cout << "kp=" << keypoint.transpose() << ", G_landmark = " << G_landmark.transpose() << std::endl;
+    geometry_msgs::Point32 point;
+    point.x = G_landmark(0);
+    point.y = G_landmark(1);
+    point.z = 0.0;
+    polygon_stamped.polygon.points.push_back(point);
+  }
+  pub_ground_points_.publish(polygon_stamped);
+
+  T_G_C = T_G_C3;
+
+  // Publish T_G_B.
+  ros::Time now = ros::Time::now();
+  geometry_msgs::PoseStamped pose_stamped_msg;
+  pose_stamped_msg.header.stamp = now;
+  pose_stamped_msg.header.frame_id = "world";
+  geometry_msgs::Pose pose_msg;
+  tf::poseKindrToMsg(T_G_B, &pose_msg);
+  pose_stamped_msg.pose = pose_msg;
+  pub_pose_.publish(pose_stamped_msg);
+
+  // Publish T_G_C.
+  geometry_msgs::PoseStamped pose_stamped_msg2;
+  pose_stamped_msg2.header = pose_stamped_msg.header;
+  geometry_msgs::Pose pose_msg2;
+  tf::poseKindrToMsg(T_G_C, &pose_msg2);
+  pose_stamped_msg2.pose = pose_msg2;
+  pub_pose_C_.publish(pose_stamped_msg2);
+
+  // Publish T_G_C3.
+  geometry_msgs::PoseStamped pose_stamped_msg3;
+  pose_stamped_msg3.header = pose_stamped_msg.header;
+  geometry_msgs::Pose pose_msg3;
+  tf::poseKindrToMsg(T_G_C3, &pose_msg3);
+  pose_stamped_msg3.pose = pose_msg3;
+  pub_pose_C3_.publish(pose_stamped_msg3);
+
+  ros::spinOnce();
+#endif
+
   const ros::Time time1 = ros::Time::now();
   if (first_frame_) {
     Eigen::Matrix3d K_new;
@@ -133,7 +234,8 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
     undistorter_->undistortImage(image_raw, downsample_factor_, &K_new,
                                  &image_undistorted);
     T_G_B_last_ = T_G_B;
-    image_undistorted_last_ = image_undistorted;
+    //image_undistorted_last_ = image_undistorted;
+    image_undistorted_last_ = image_raw;
     first_frame_ = false;
     return;
   }
@@ -148,6 +250,10 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
   const Eigen::Vector3d& c_last = T_W_C_last.getPosition();
   const Eigen::Matrix3d& R_last = T_W_C_last.getRotationMatrix();
 
+  std::cout << "T_B_C = " << std::endl << T_B_C_ << std::endl;
+  std::cout << "K_ = " << std::endl << K_ << std::endl;
+
+  std::cout << "T_W_C = " << std::endl << T_W_C << std::endl;
   //  std::cout << "c = " << c.transpose() << ", c_last = " <<
   //  c_last.transpose() << std::endl;
   //  std::cout << "R = " << std::endl<< R << std::endl <<", R_last = "
@@ -156,8 +262,9 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
   // Create a StereoPair
   Eigen::Matrix3d K_new;
   cv::Mat image_undistorted;
-  undistorter_->undistortImage(image_raw, downsample_factor_, &K_new,
-                               &image_undistorted);
+//  undistorter_->undistortImage(image_raw, downsample_factor_, &K_new,
+//                               &image_undistorted);
+  image_undistorted = image_raw;
 
   //  std::cout << "cv types: " << image_undistorted_last_.type() << ", "
   //            << image_undistorted.type() << std::endl;
