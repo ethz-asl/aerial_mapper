@@ -43,6 +43,13 @@ cs_add_executable(${PROJECT_NAME}_dense_pcl_from_file
 add_dependencies(${PROJECT_NAME}_dense_pcl_from_file ${${PROJECT_NAME}_EXPORTED_TARGETS}})
 target_link_libraries(${PROJECT_NAME}_dense_pcl_from_file ${catkin_LIBRARIES})
 
+# PIX4D GEOFILE EXPORTER
+cs_add_executable(${PROJECT_NAME}_export_pix4d_geofile
+    src/util/main-generate-pix4d-geofile.cc)
+add_dependencies(${PROJECT_NAME}_export_pix4d_geofile ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+target_link_libraries(${PROJECT_NAME}_export_pix4d_geofile ${catkin_LIBRARIES})
+
+
 #############
 # QTCREATOR #
 #############
