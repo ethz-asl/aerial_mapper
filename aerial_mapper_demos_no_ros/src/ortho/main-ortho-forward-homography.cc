@@ -28,6 +28,10 @@ int main(int argc, char** argv) {
   // TODO(hitimo): Remove ROS dependency here.
   ros::init(argc, argv, "ortho_forward_homography");
 
+//  io::AerialMapperIO io_handler2;
+//  io_handler2.convertFromSimulation();
+//  CHECK(false);
+
   // Parse input parameters.
   const std::string& base = FLAGS_forward_homography_data_directory;
   const std::string& filename_camera_rig =
@@ -66,7 +70,7 @@ int main(int argc, char** argv) {
   CHECK(ncameras);
   ortho::OrthoForwardHomography mosaic(ncameras, origin);
   if (mode == Mode::Incremental) {
-    for (size_t i = 0u; i < images.size(); ++i) {
+    for (size_t i = 0u; i < images.size()-200; ++i) {
       LOG(INFO) << i << "/" << images.size();
       CHECK(i < images.size());
       const Image& image = images[i];
