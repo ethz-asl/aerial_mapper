@@ -1,7 +1,7 @@
 /*
  *    Filename: main_from_file.cc
  *  Created on: Jun 25, 2017
- *      Author: Timo Hinzmann
+ *      Author: Timo Hinzmann, Andreas Jaeger
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
@@ -15,7 +15,6 @@
 // PACKAGE
 #include "aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h"
 
-
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <minkindr_conversions/kindr_tf.h>
@@ -25,8 +24,11 @@ namespace dense_pcl {
 
 PlanarRectification::PlanarRectification(
     const std::shared_ptr<aslam::NCamera> ncameras, const Settings& settings)
-    : first_frame_(true), settings_(settings), downsample_factor_(1.0),
-      ncameras_(ncameras), node_handle_(),
+    : first_frame_(true),
+      settings_(settings),
+      downsample_factor_(1.0),
+      ncameras_(ncameras),
+      node_handle_(),
       image_transport_(image_transport::ImageTransport(node_handle_)) {
   CHECK(ncameras_);
 
@@ -35,7 +37,7 @@ PlanarRectification::PlanarRectification(
       std::dynamic_pointer_cast<const aslam::PinholeCamera>(
           ncameras_->getCameraShared(kFrameIdx));
   K_ = pinhole_camera_ptr->getCameraMatrix();
-  LOG(INFO) << "Camera calibration matrix K = " << std::endl << K_;
+  // LOG(INFO) << "Camera calibration matrix K = " << std::endl << K_;
 
   // Camera distortion parameters.
   Eigen::VectorXd k =
@@ -44,8 +46,8 @@ PlanarRectification::PlanarRectification(
   undistorter_.reset(
       new dense::Equidistant_Undistorter(K_, k(0), k(1), k(2), k(3)));
   T_B_C_ = ncameras_->get_T_C_B(kFrameIdx).inverse();
-  LOG(INFO) << "Camera-IMU extrinsics T_B_C = " << std::endl
-            << T_B_C_.getTransformationMatrix();
+  //  LOG(INFO) << "Camera-IMU extrinsics T_B_C = " << std::endl
+  //            << T_B_C_.getTransformationMatrix();
 
   pub_undistorted_image_ =
       image_transport_.advertise("/planar_rectification/undistorted", 1);
@@ -53,14 +55,15 @@ PlanarRectification::PlanarRectification(
   pub_point_cloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>(
       "/planar_rectification/point_cloud", 1);
 
-  pub_ground_points_ =
-      node_handle_.advertise<geometry_msgs::PolygonStamped>(
-        "/orthomosaic/ground_points", 1000);
+  pub_ground_points_ = node_handle_.advertise<geometry_msgs::PolygonStamped>(
+      "/orthomosaic/ground_points", 1000);
 
-
-  pub_pose_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_G_B", 1);
-  pub_pose_C_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_G_C", 1);
-pub_pose_C3_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_G_C3", 1);
+  pub_pose_ =
+      node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_G_B", 1);
+  pub_pose_C_ =
+      node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_G_C", 1);
+  pub_pose_C3_ = node_handle_.advertise<geometry_msgs::PoseStamped>(
+      "/fw_mapper/T_G_C3", 1);
 
   // Create a planar rectification parameter object with default values
   dense::PlanarRectificationParams::Ptr parameters(
@@ -135,98 +138,43 @@ pub_pose_C3_ = node_handle_.advertise<geometry_msgs::PoseStamped>("/fw_mapper/T_
   // Optimizer.
   optimizer_ = dense::Optimizer::Ptr(new dense::Optimizer(optimizer_params));
   buffer_ = dense::VFQueue::Ptr(new dense::VFQueue(buffer_params));
-  ROS_ERROR_STREAM("Leaving ctor");
 }
 
-void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
-                                   const cv::Mat& image_raw) {
-  VLOG(0) << "add frame";
-
-#define publish_frames
-#ifdef publish_frames
-  border_keypoints_.resize(Eigen::NoChange, 4);
-  const size_t width = ncameras_->getCameraShared(0u)->imageWidth();
-  const size_t height = ncameras_->getCameraShared(0u)->imageHeight();
-  border_keypoints_.col(0) = Eigen::Vector2d(0.0, 0.0);
-  border_keypoints_.col(1) =
-      Eigen::Vector2d(static_cast<double>(width - 1u), 0.0);
-  border_keypoints_.col(2) =
-      Eigen::Vector2d(static_cast<double>(width - 1u),
-                      static_cast<double>(height - 1u));
-  border_keypoints_.col(3) =
-      Eigen::Vector2d(0.0, static_cast<double>(height - 1u));
-
-
-  geometry_msgs::PolygonStamped polygon;
-  polygon.header.stamp = ros::Time::now();
-  geometry_msgs::PolygonStamped polygon_stamped;
-  polygon_stamped.header.stamp = ros::Time::now();
-  polygon_stamped.header.frame_id = "/world";
-  polygon_stamped.polygon.points.reserve(4);
-
-  aslam::Transformation T_G_C = T_G_B * ncameras_->get_T_C_B(kFrameIdx).inverse();
-  std::cout << "T_G_C = " << std::endl << T_G_C.getTransformationMatrix() << std::endl;
-
-  Eigen::Matrix4d T_yaw_;
-    double yaw_ = M_PI/2;
-    T_yaw_ << cos(yaw_), -sin(yaw_), 0,0,
-        sin(yaw_), cos(yaw_), 0,0,
-        0, 0, 1, 0,
-        0, 0, 0, 1;
-    aslam::Transformation T_yaw = aslam::Transformation(T_yaw_);
-
-
-    aslam::Transformation T_G_C3(T_G_C.getPosition(),
-                                 T_yaw.getRotation() * T_G_C.getRotation());
-  std::cout << "T_G_C3 =" << std::endl << T_G_C3.getTransformationMatrix() << std::endl;
-
-  for (int border_pixel_index = 0; border_pixel_index < border_keypoints_.cols();
-       ++border_pixel_index) {
-    Eigen::Vector3d C_ray;
-    const Eigen::Vector2d& keypoint = border_keypoints_.col(border_pixel_index);
-    ncameras_->getCameraShared(kFrameIdx)->backProject3(keypoint, &C_ray);
-    const double scale = - (T_G_C3.getPosition()(2) - 50.0) / (T_G_C3.getRotationMatrix() * C_ray)(2);
-    const Eigen::Vector3d& G_landmark = T_G_C3.getPosition() + scale * T_G_C3.getRotationMatrix() * C_ray;
-    std::cout << "kp=" << keypoint.transpose() << ", G_landmark = " << G_landmark.transpose() << std::endl;
-    geometry_msgs::Point32 point;
-    point.x = G_landmark(0);
-    point.y = G_landmark(1);
-    point.z = 0.0;
-    polygon_stamped.polygon.points.push_back(point);
+void PlanarRectification::addFrames(
+    const Poses& T_G_Bs, const Images& images,
+    Aligned<std::vector, Eigen::Vector3d>::type* point_cloud,
+    std::vector<int>* point_cloud_intensities) {
+  CHECK(point_cloud);
+  point_cloud->clear();
+  if (point_cloud_intensities) {
+    point_cloud_intensities->clear();
   }
-  pub_ground_points_.publish(polygon_stamped);
 
-  T_G_C = T_G_C3;
+  size_t skip = 0u;
+  for (size_t i = 0u; i < images.size(); ++i) {
+    if (++skip % settings_.use_every_nth_image == 0) {
+      LOG(INFO) << "Processing image " << i << "/" << images.size();
+      Aligned<std::vector, Eigen::Vector3d>::type point_cloud_tmp;
+      std::vector<int> point_cloud_intensities_tmp;
+      addFrame(T_G_Bs[i], images[i], &point_cloud_tmp,
+               &point_cloud_intensities_tmp);
+      CHECK(point_cloud_tmp.size() == point_cloud_intensities_tmp.size());
+      for (size_t i = 0u; i < point_cloud_tmp.size(); ++i) {
+        CHECK(point_cloud);
+        point_cloud->push_back(point_cloud_tmp[i]);
+        if (point_cloud_intensities) {
+          point_cloud_intensities->push_back(point_cloud_intensities_tmp[i]);
+        }
+      }
+    }
+  }
+}
 
-  // Publish T_G_B.
-  ros::Time now = ros::Time::now();
-  geometry_msgs::PoseStamped pose_stamped_msg;
-  pose_stamped_msg.header.stamp = now;
-  pose_stamped_msg.header.frame_id = "world";
-  geometry_msgs::Pose pose_msg;
-  tf::poseKindrToMsg(T_G_B, &pose_msg);
-  pose_stamped_msg.pose = pose_msg;
-  pub_pose_.publish(pose_stamped_msg);
-
-  // Publish T_G_C.
-  geometry_msgs::PoseStamped pose_stamped_msg2;
-  pose_stamped_msg2.header = pose_stamped_msg.header;
-  geometry_msgs::Pose pose_msg2;
-  tf::poseKindrToMsg(T_G_C, &pose_msg2);
-  pose_stamped_msg2.pose = pose_msg2;
-  pub_pose_C_.publish(pose_stamped_msg2);
-
-  // Publish T_G_C3.
-  geometry_msgs::PoseStamped pose_stamped_msg3;
-  pose_stamped_msg3.header = pose_stamped_msg.header;
-  geometry_msgs::Pose pose_msg3;
-  tf::poseKindrToMsg(T_G_C3, &pose_msg3);
-  pose_stamped_msg3.pose = pose_msg3;
-  pub_pose_C3_.publish(pose_stamped_msg3);
-
-  ros::spinOnce();
-#endif
-
+void PlanarRectification::addFrame(
+    const Pose& T_G_B, const Image& image_raw,
+    Aligned<std::vector, Eigen::Vector3d>::type* point_cloud,
+    std::vector<int>* point_cloud_intensities) {
+  CHECK(point_cloud);
   const ros::Time time1 = ros::Time::now();
   if (first_frame_) {
     Eigen::Matrix3d K_new;
@@ -234,7 +182,7 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
     undistorter_->undistortImage(image_raw, downsample_factor_, &K_new,
                                  &image_undistorted);
     T_G_B_last_ = T_G_B;
-    //image_undistorted_last_ = image_undistorted;
+    // image_undistorted_last_ = image_undistorted;
     image_undistorted_last_ = image_raw;
     first_frame_ = false;
     return;
@@ -250,42 +198,38 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
   const Eigen::Vector3d& c_last = T_W_C_last.getPosition();
   const Eigen::Matrix3d& R_last = T_W_C_last.getRotationMatrix();
 
-  std::cout << "T_B_C = " << std::endl << T_B_C_ << std::endl;
-  std::cout << "K_ = " << std::endl << K_ << std::endl;
-
-  std::cout << "T_W_C = " << std::endl << T_W_C << std::endl;
-  //  std::cout << "c = " << c.transpose() << ", c_last = " <<
-  //  c_last.transpose() << std::endl;
-  //  std::cout << "R = " << std::endl<< R << std::endl <<", R_last = "
-  //            << std::endl<< R_last.transpose() << std::endl;
-
   // Create a StereoPair
   Eigen::Matrix3d K_new;
   cv::Mat image_undistorted;
-//  undistorter_->undistortImage(image_raw, downsample_factor_, &K_new,
-//                               &image_undistorted);
+  //  undistorter_->undistortImage(image_raw, downsample_factor_, &K_new,
+  //                               &image_undistorted);
   image_undistorted = image_raw;
 
-  //  std::cout << "cv types: " << image_undistorted_last_.type() << ", "
-  //            << image_undistorted.type() << std::endl;
   dense::StereoPair::Ptr stereoPair(
       new dense::StereoPair(K_, image_undistorted_last_, true, c_last, R_last,
                             K_, image_undistorted, true, c, R));
 
-  cv::imshow("image_undistorted_last", image_undistorted_last_);
-  cv::imshow("image_undistorted", image_undistorted);
-  cv::waitKey(1);
-
   planar_rectification_->densifyStereoPair(*stereoPair);
   if (stereoPair->vF1->isDensified()) {
     // Get the point cloud (defined in the world system)
-    cv::Mat_<cv::Vec3f> point_cloud;
     cv::Mat point_cloud_intensity;
+    cv::Mat_<cv::Vec3f> point_cloud_cv;
     stereoPair->vF1->getPointCloud(stereoPair->vF1->c_, stereoPair->vF1->R_W_C_,
-                                   point_cloud, point_cloud_intensity);
+                                   point_cloud_cv, point_cloud_intensity);
     const ros::Time time2 = ros::Time::now();
     const ros::Duration& d1 = time2 - time1;
     std::cout << d1 << std::endl;
+
+    for (int v = 0; v < point_cloud_cv.rows; ++v) {
+      for (int u = 0; u < point_cloud_cv.cols; ++u) {
+        if (dense::isValidPoint(point_cloud_cv.operator()(v, u))) {
+          point_cloud->push_back(
+              Eigen::Vector3d(point_cloud_cv.operator()(v, u)[0],
+                              point_cloud_cv.operator()(v, u)[1],
+                              point_cloud_cv.operator()(v, u)[2]));
+        }  // if valid_point
+      }    // for u
+    }      // for v
 
     // Compute the average scene depth
     float zAvg = 100;
@@ -294,16 +238,10 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
     // Publish point cloud
     sensor_msgs::PointCloud2 point_cloud_msg;
     ros::Time timestamp = ros::Time::now();
-    Utils::convertCvPclToRosPCL2Msg(point_cloud, point_cloud_intensity,
-                                    "/world", timestamp, point_cloud_msg);
+    Utils::convertCvPclToRosPCL2Msg(point_cloud_cv, point_cloud_intensity,
+                                    "/world", timestamp, point_cloud_msg,
+                                    point_cloud_intensities);
     pub_point_cloud_.publish(point_cloud_msg);
-
-    //     pcl::PointCloud<pcl::PointXYZ> cloud;
-    //     pcl::fromROSMsg(point_cloud_msg, cloud);
-    //     for (size_t i = 0u; i < cloud.size(); ++i) {
-    //       std::cout << Eigen::Vector3d(cloud[i].x, cloud[i].y,
-    //       cloud[i].z).transpose() << std::endl;
-    //     }
 
     // Compute the angle between the baseline and the optical axis of each
     // vision frame of the stereo pair.
@@ -333,38 +271,11 @@ void PlanarRectification::addFrame(const aslam::Transformation& T_G_B,
        << std::endl << std::endl
        << ">> Rectification And Densification:" << std::endl
        << "Avg Scene Depth: " << zAvg << " m" << std::endl;
-    VLOG(0) << ss.str();
+    VLOG(300) << ss.str();
 
     CHECK(buffer_);
     buffer_->push(stereoPair->vF1);
   }
-
-  //  std::vector<dense::VisionFrame::Ptr> optimization_set;
-  //  for (std::deque<dense::VisionFrame::Ptr>::iterator i =
-  //  buffer_->getBeginIterator();
-  //       i != buffer_->getEndIterator(); ++i) {
-  //    optimization_set.push_back(*i);
-  //  }
-
-  //  dense::VisionFrame::Ptr fused_vision_frame;
-  //  bool is_vision_frame_fused =
-  //      optimizer_->fuseVisionFrameSet(optimization_set, fused_vision_frame);
-  //  float d;
-  //  fused_vision_frame->getAvgSceneDepth(d);
-
-  //  sensor_msgs::PointCloud2 point_cloud_msg;
-  //  ros::Time timestamp = ros::Time::now();
-  //  cv::Mat_<cv::Vec3f> point_cloud;
-  //  cv::Mat point_cloud_intensity;
-  //  fused_vision_frame->getPointCloud(stereoPair->vF1->c_,
-  //  stereoPair->vF1->R_W_C_,
-  //                                 point_cloud, point_cloud_intensity);
-
-  //  //fused_vision_frame->getPointCloud(point_cloud, point_cloud_intensity);
-  //  Utils::convertCvPclToRosPCL2Msg(point_cloud, point_cloud_intensity,
-  //  "/world",
-  //                                  timestamp, point_cloud_msg);
-  // pub_point_cloud_.publish(point_cloud_msg);
 
   T_G_B_last_ = T_G_B;
   image_undistorted_last_ = image_undistorted;
@@ -386,3 +297,88 @@ void PlanarRectification::publishUndistortedImage(const cv::Mat& image) {
 }
 
 }  // namespace dense_pcl
+
+//#define publish_frames
+#ifdef publish_frames
+border_keypoints_.resize(Eigen::NoChange, 4);
+const size_t width = ncameras_->getCameraShared(0u)->imageWidth();
+const size_t height = ncameras_->getCameraShared(0u)->imageHeight();
+border_keypoints_.col(0) = Eigen::Vector2d(0.0, 0.0);
+border_keypoints_.col(1) = Eigen::Vector2d(static_cast<double>(width - 1u),
+                                           0.0);
+border_keypoints_.col(2) = Eigen::Vector2d(static_cast<double>(width - 1u),
+                                           static_cast<double>(height - 1u));
+border_keypoints_.col(3) = Eigen::Vector2d(0.0,
+                                           static_cast<double>(height - 1u));
+
+geometry_msgs::PolygonStamped polygon;
+polygon.header.stamp = ros::Time::now();
+geometry_msgs::PolygonStamped polygon_stamped;
+polygon_stamped.header.stamp = ros::Time::now();
+polygon_stamped.header.frame_id = "/world";
+polygon_stamped.polygon.points.reserve(4);
+
+aslam::Transformation T_G_C = T_G_B * ncameras_->get_T_C_B(kFrameIdx).inverse();
+std::cout << "T_G_C = " << std::endl << T_G_C.getTransformationMatrix()
+          << std::endl;
+
+Eigen::Matrix4d T_yaw_;
+double yaw_ = M_PI / 2;
+T_yaw_ << cos(yaw_), -sin(yaw_), 0, 0, sin(yaw_), cos(yaw_), 0, 0, 0, 0, 1, 0,
+    0, 0, 0, 1;
+aslam::Transformation T_yaw = aslam::Transformation(T_yaw_);
+
+aslam::Transformation T_G_C3(T_G_C.getPosition(),
+                             T_yaw.getRotation() * T_G_C.getRotation());
+std::cout << "T_G_C3 =" << std::endl << T_G_C3.getTransformationMatrix()
+          << std::endl;
+
+for (int border_pixel_index = 0; border_pixel_index < border_keypoints_.cols();
+     ++border_pixel_index) {
+  Eigen::Vector3d C_ray;
+  const Eigen::Vector2d& keypoint = border_keypoints_.col(border_pixel_index);
+  ncameras_->getCameraShared(kFrameIdx)->backProject3(keypoint, &C_ray);
+  const double scale = -(T_G_C3.getPosition()(2) - 50.0) /
+                       (T_G_C3.getRotationMatrix() * C_ray)(2);
+  const Eigen::Vector3d& G_landmark =
+      T_G_C3.getPosition() + scale * T_G_C3.getRotationMatrix() * C_ray;
+  std::cout << "kp=" << keypoint.transpose()
+            << ", G_landmark = " << G_landmark.transpose() << std::endl;
+  geometry_msgs::Point32 point;
+  point.x = G_landmark(0);
+  point.y = G_landmark(1);
+  point.z = 0.0;
+  polygon_stamped.polygon.points.push_back(point);
+}
+pub_ground_points_.publish(polygon_stamped);
+
+T_G_C = T_G_C3;
+
+// Publish T_G_B.
+ros::Time now = ros::Time::now();
+geometry_msgs::PoseStamped pose_stamped_msg;
+pose_stamped_msg.header.stamp = now;
+pose_stamped_msg.header.frame_id = "world";
+geometry_msgs::Pose pose_msg;
+tf::poseKindrToMsg(T_G_B, &pose_msg);
+pose_stamped_msg.pose = pose_msg;
+pub_pose_.publish(pose_stamped_msg);
+
+// Publish T_G_C.
+geometry_msgs::PoseStamped pose_stamped_msg2;
+pose_stamped_msg2.header = pose_stamped_msg.header;
+geometry_msgs::Pose pose_msg2;
+tf::poseKindrToMsg(T_G_C, &pose_msg2);
+pose_stamped_msg2.pose = pose_msg2;
+pub_pose_C_.publish(pose_stamped_msg2);
+
+// Publish T_G_C3.
+geometry_msgs::PoseStamped pose_stamped_msg3;
+pose_stamped_msg3.header = pose_stamped_msg.header;
+geometry_msgs::Pose pose_msg3;
+tf::poseKindrToMsg(T_G_C3, &pose_msg3);
+pose_stamped_msg3.pose = pose_msg3;
+pub_pose_C3_.publish(pose_stamped_msg3);
+
+ros::spinOnce();
+#endif

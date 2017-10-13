@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find aerial_mapper_demos_no_ros)/rviz/rviz_config.rviz"/>
+</launch>

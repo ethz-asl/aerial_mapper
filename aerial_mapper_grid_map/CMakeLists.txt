@@ -5,6 +5,15 @@ find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
 #############
+# LIBRARIES #
+#############
+add_definitions(-std=c++11)
+
+cs_add_library(${PROJECT_NAME}
+  src/aerial-mapper-grid-map.cc
+)
+
+#############
 # QTCREATOR #
 #############
 FILE(GLOB_RECURSE LibFiles "include/*")

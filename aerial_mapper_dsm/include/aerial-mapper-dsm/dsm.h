@@ -35,6 +35,10 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
 
+#include <grid_map_msgs/GridMap.h>
+#include <grid_map_core/iterators/GridMapIterator.hpp>
+#include <grid_map_core/GridMap.hpp>
+#include <grid_map_cv/grid_map_cv.hpp>
 
 namespace dsm {
 
@@ -45,7 +49,9 @@ struct Settings {
   bool show_output = true;
   int interpolation_radius = 1.0;
   bool adaptive_interpolation = false;
-  Eigen::Vector3d origin = Eigen::Vector3d(0.0, 0.0, 0.0);
+  //Eigen::Vector3d origin = Eigen::Vector3d(0.0, 0.0, 0.0);
+  double center_easting = 0.0;
+  double center_northing = 0.0;
 };
 
 class Dsm {
@@ -54,14 +60,31 @@ class Dsm {
 
   Dsm(const Settings& settings);
 
-  void process(
-      const Aligned<std::vector, Eigen::Vector3d>::type& pointcloud);
+  /// Deprecated
+  void process(const Aligned<std::vector, Eigen::Vector3d>::type& pointcloud);
+
+  void initializeAndFillKdTree(
+      const Aligned<std::vector, Eigen::Vector3d>::type& point_cloud);
+
+  void updateElevationLayer(grid_map::GridMap* map);
 
  private:
   void printParams();
+
   Settings settings_;
+
+  // kd Tree
+  static constexpr size_t kMaxLeaf = 20u;
+  static constexpr size_t kDimensionKdTree = 2u;
+  typedef PointCloudAdaptor<PointCloud<double> > PC2KD;
+  typedef nanoflann::KDTreeSingleIndexAdaptor<
+      nanoflann::L2_Adaptor<double, PC2KD>, PC2KD, kDimensionKdTree>
+      my_kd_tree_t;
+  PointCloud<double> cloud_kdtree_;
+  std::unique_ptr<my_kd_tree_t> kd_tree_;
+  std::unique_ptr<PC2KD> pc2kd_;
 };
 
-} // namespace dsm
+}  // namespace dsm
 
-#endif // DSM_H_
+#endif  // DSM_H_

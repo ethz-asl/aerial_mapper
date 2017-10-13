@@ -13,20 +13,23 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <ros/ros.h>
+#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
+#include <aerial-mapper-grid-map/aerial-mapper-grid-map.h>
 
 DEFINE_bool(ortho_from_pcl_show_orthomosaic_opencv, true, "");
 DEFINE_bool(ortho_from_pcl_use_adaptive_interpolation, false, "");
 DEFINE_int32(ortho_from_pcl_interpolation_radius, 10, "");
-DEFINE_string(ortho_from_pcl_data_directory, "", "");
+DEFINE_string(data_directory, "", "");
 DEFINE_string(ortho_from_pcl_orthomosaic_jpg_filename, "", "");
 DEFINE_string(ortho_from_pcl_point_cloud_filename, "", "");
-DEFINE_double(ortho_from_pcl_orthomosaic_resolution, 1.0, "");
-DEFINE_double(ortho_from_pcl_orthomosaic_easting_min, 0.0, "");
-DEFINE_double(ortho_from_pcl_orthomosaic_easting_max, 0.0, "");
-DEFINE_double(ortho_from_pcl_orthomosaic_northing_min, 0.0, "");
-DEFINE_double(ortho_from_pcl_orthomosaic_northing_max, 0.0, "");
+DEFINE_string(filename_poses, "", "");
+DEFINE_string(prefix_images, "", "");
+DEFINE_string(filename_camera_rig, "", "");
+DEFINE_bool(load_point_cloud_from_file, false, "");
+DEFINE_string(filename_point_cloud, "", "");
+DEFINE_int32(dense_pcl_use_every_nth_image, 10, "");
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
@@ -35,44 +38,75 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh;
 
   // Parse input parameters.
-  const std::string& filename_point_cloud =
-      FLAGS_ortho_from_pcl_data_directory +
-      FLAGS_ortho_from_pcl_point_cloud_filename;
+  const std::string& base = FLAGS_data_directory;
+  const std::string& filename_camera_rig = FLAGS_filename_camera_rig;
+  const std::string& filename_poses = FLAGS_filename_poses;
+  const std::string& filename_images = base + FLAGS_prefix_images;
 
+  // Load camera rig from file.
+  io::AerialMapperIO io_handler;
+  const std::string& filename_camera_rig_yaml = base + filename_camera_rig;
+  std::shared_ptr<aslam::NCamera> ncameras =
+      io_handler.loadCameraRigFromFile(filename_camera_rig_yaml);
+  CHECK(ncameras);
+
+  // Load body poses from file.
+  Poses T_G_Bs;
+  const std::string& path_filename_poses = base + filename_poses;
+  io::PoseFormat pose_format = io::PoseFormat::Standard;
+  io_handler.loadPosesFromFile(pose_format, path_filename_poses, &T_G_Bs);
+
+  // Load images from file.
+  size_t num_poses = T_G_Bs.size();
+  Images images;
+  io_handler.loadImagesFromFile(filename_images, num_poses, &images);
+
+  // Retrieve dense point cloud.
+  Aligned<std::vector, Eigen::Vector3d>::type point_cloud;
+  std::vector<int> point_cloud_intensities;
+  if (FLAGS_load_point_cloud_from_file) {
+    // Either load point cloud from file..
+    CHECK(!FLAGS_filename_point_cloud.empty());
+    io_handler.loadPointCloudFromFile(
+        FLAGS_filename_point_cloud, &point_cloud, &point_cloud_intensities);
+  } else {
+    // .. or generate via dense reconstruction from poses and images.
+    dense_pcl::Settings settings_dense_pcl;
+    settings_dense_pcl.use_every_nth_image =
+        FLAGS_dense_pcl_use_every_nth_image;
+    dense_pcl::PlanarRectification dense_reconstruction(ncameras,
+                                                        settings_dense_pcl);
+    dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud,
+                                   &point_cloud_intensities);
+  }
+
+  LOG(INFO) << "Initialize layered map.";
+  grid_map::Settings settings_aerial_grid_map;
+  settings_aerial_grid_map.center_easting = 0.0;
+  settings_aerial_grid_map.center_northing = 0.0;
+  settings_aerial_grid_map.delta_easting = 200.0;
+  settings_aerial_grid_map.delta_northing = 200.0;
+  settings_aerial_grid_map.resolution = 0.5;
+  grid_map::AerialGridMap map(settings_aerial_grid_map);
+
+  // Orthomosaic from point cloud.
   ortho::Settings settings;
-  settings.interpolation_radius =
-      FLAGS_ortho_from_pcl_interpolation_radius;
+  settings.interpolation_radius = FLAGS_ortho_from_pcl_interpolation_radius;
   settings.use_adaptive_interpolation =
       FLAGS_ortho_from_pcl_use_adaptive_interpolation;
   settings.show_orthomosaic_opencv =
       FLAGS_ortho_from_pcl_show_orthomosaic_opencv;
   settings.orthomosaic_jpg_filename =
       FLAGS_ortho_from_pcl_orthomosaic_jpg_filename;
-  settings.orthomosaic_resolution =
-      FLAGS_ortho_from_pcl_orthomosaic_resolution;
-  settings.orthomosaic_easting_min =
-      FLAGS_ortho_from_pcl_orthomosaic_easting_min;
-  settings.orthomosaic_easting_max =
-      FLAGS_ortho_from_pcl_orthomosaic_easting_max;
-  settings.orthomosaic_northing_min =
-      FLAGS_ortho_from_pcl_orthomosaic_northing_min;
-  settings.orthomosaic_northing_max =
-      FLAGS_ortho_from_pcl_orthomosaic_northing_max;
-
-  // Load point cloud from file.
-  io::AerialMapperIO io_handler;
-  Aligned<std::vector, Eigen::Vector3d>::type point_cloud_xyz;
-  std::vector<int> point_cloud_intensities;
-  io_handler.loadPointCloudFromFile(filename_point_cloud,
-                                    &point_cloud_xyz,
-                                    &point_cloud_intensities);
-  CHECK(point_cloud_xyz.size() > 0);
-  CHECK(point_cloud_xyz.size() == point_cloud_intensities.size());
+  CHECK(point_cloud.size() > 0);
+  CHECK(point_cloud.size() == point_cloud_intensities.size());
 
   // Generate the orthomosaic from the point cloud.
-  ortho::OrthoFromPcl ortho(point_cloud_xyz,
-                            point_cloud_intensities,
-                            settings);
+  ortho::OrthoFromPcl mosaic(settings);
+  mosaic.process(point_cloud, point_cloud_intensities, map.getMutable());
+
+  LOG(INFO) << "Publish until shutdown.";
+  map.publishUntilShutdown();
 
   return 0;
 }

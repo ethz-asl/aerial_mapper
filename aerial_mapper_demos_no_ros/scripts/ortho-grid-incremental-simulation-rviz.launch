@@ -1,0 +1,10 @@
+<launch>
+
+# Rviz
+<node pkg="rviz" type="rviz" name="rviz" args="-d $(find aerial_mapper_demos_no_ros)/rviz/ortho.rviz"/>
+
+# Orthomosaic generation via incremental grid
+<arg name="flagfile" default="$(find aerial_mapper_demos_no_ros)/flags/ortho/simulation/ortho-backward-grid-batch-cadastre.ff" />
+<node pkg="aerial_mapper_demos_no_ros" type="aerial_mapper_demos_no_ros_ortho_backward_grid_incremental" name="demo_ortho_grid_incremental" output="screen" args="--flagfile=$(arg flagfile)" />
+
+</launch> 

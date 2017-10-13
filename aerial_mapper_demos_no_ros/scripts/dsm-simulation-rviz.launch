@@ -1,0 +1,10 @@
+<launch>
+
+# Rviz
+<node pkg="rviz" type="rviz" name="rviz" args="-d $(find aerial_mapper_demos_no_ros)/rviz/dsm.rviz"/>
+
+# DSM generation
+<arg name="flagfile" default="$(find aerial_mapper_demos_no_ros)/flags/dsm/simulation/dsm.ff" />
+<node pkg="aerial_mapper_demos_no_ros" type="aerial_mapper_demos_no_ros_dsm_from_file" name="demo_dsm" output="screen" args="--flagfile=$(arg flagfile)" />
+
+</launch> 

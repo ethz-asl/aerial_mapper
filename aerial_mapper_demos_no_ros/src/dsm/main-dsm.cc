@@ -7,7 +7,9 @@
 
 
 // NON-SYSTEM
+#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
 #include <aerial-mapper-dsm/dsm.h>
+#include <aerial-mapper-grid-map/aerial-mapper-grid-map.h>
 #include <aerial-mapper-io/aerial-mapper-io.h>
 #include <aerial-mapper-utils/utils-nearest-neighbor.h>
 #include <gflags/gflags.h>
@@ -15,40 +17,86 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 
-DEFINE_int32(dsm_color_palette, 0, "");
-DEFINE_string(dsm_data_directory, "", "");
-DEFINE_string(dsm_point_cloud_filename, "", "");
-DEFINE_double(dsm_origin_easting_m, 0.0, "");
-DEFINE_double(dsm_origin_elevation_m, 0.0, "");
-DEFINE_double(dsm_origin_northing_m, 0.0, "");
+//DEFINE_int32(dsm_color_palette, 0, "");
+//DEFINE_string(dsm_data_directory, "", "");
+//DEFINE_string(dsm_point_cloud_filename, "", "");
+//DEFINE_double(dsm_origin_easting_m, 0.0, "");
+//DEFINE_double(dsm_origin_elevation_m, 0.0, "");
+//DEFINE_double(dsm_origin_northing_m, 0.0, "");
 
+DEFINE_string(data_directory, "", "");
+DEFINE_string(filename_camera_rig, "", "");
+DEFINE_string(filename_poses, "", "");
+DEFINE_string(prefix_images, "", "");
+DEFINE_string(filename_point_cloud, "", "");
+DEFINE_int32(dense_pcl_use_every_nth_image, 10, "");
 
 int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
-  // TODO(hitimo): Remove ROS dependency here.
   ros::init(argc, argv, "dsm_from_file");
 
-   // Parse input parameters.
-  dsm::Settings settings;
-  settings.color_palette = FLAGS_dsm_color_palette;
-  settings.origin = Eigen::Vector3d(FLAGS_dsm_origin_easting_m,
-                                    FLAGS_dsm_origin_northing_m,
-                                    FLAGS_dsm_origin_elevation_m);
-  const std::string& filename_point_cloud = FLAGS_dsm_data_directory +
-      FLAGS_dsm_point_cloud_filename;
+  // Parse input parameters.
+  const std::string& base = FLAGS_data_directory;
+  const std::string& filename_camera_rig = FLAGS_filename_camera_rig;
+  const std::string& filename_poses = FLAGS_filename_poses;
+  const std::string& filename_images = base + FLAGS_prefix_images;
 
+  // Load camera rig from file.
   io::AerialMapperIO io_handler;
-  Aligned<std::vector, Eigen::Vector3d>::type point_cloud_xyz;
-  LOG(INFO) << "Loading the point cloud from the file: "
-            << filename_point_cloud;
-  io_handler.loadPointCloudFromFile(filename_point_cloud,
-                                    &point_cloud_xyz);
+  const std::string& filename_camera_rig_yaml = base + filename_camera_rig;
+  std::cout << "filename_camera_rig = "
+            << filename_camera_rig_yaml << std::endl;
+  std::shared_ptr<aslam::NCamera> ncameras =
+      io_handler.loadCameraRigFromFile(filename_camera_rig_yaml);
+  CHECK(ncameras);
 
-  LOG(INFO) << "Generating the digital surface map.";
-  dsm::Dsm digital_surface_map(settings);
-  digital_surface_map.process(point_cloud_xyz);
+  // Load body poses from file.
+  Poses T_G_Bs;
+  const std::string& path_filename_poses = base + filename_poses;
+  io::PoseFormat pose_format = io::PoseFormat::Standard;
+  io_handler.loadPosesFromFile(pose_format, path_filename_poses, &T_G_Bs);
+
+  // Load images from file.
+  size_t num_poses = T_G_Bs.size();
+  Images images;
+  io_handler.loadImagesFromFile(filename_images, num_poses, &images);
+
+  // Retrieve dense point cloud.
+  Aligned<std::vector, Eigen::Vector3d>::type point_cloud;
+  if (!FLAGS_filename_point_cloud.empty()) {
+    // Either load point cloud from file..
+    io_handler.loadPointCloudFromFile(FLAGS_filename_point_cloud, &point_cloud);
+  } else {
+    // .. or generate via dense reconstruction from poses and images.
+    dense_pcl::Settings settings_dense_pcl;
+    settings_dense_pcl.use_every_nth_image =
+        FLAGS_dense_pcl_use_every_nth_image;
+    dense_pcl::PlanarRectification dense_reconstruction(ncameras,
+                                                        settings_dense_pcl);
+    dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud);
+  }
+
+  LOG(INFO) << "Initialize layered map.";
+  grid_map::Settings settings_aerial_grid_map;
+  settings_aerial_grid_map.center_easting = 0.0;
+  settings_aerial_grid_map.center_northing = 0.0;
+  settings_aerial_grid_map.delta_easting = 200.0;
+  settings_aerial_grid_map.delta_northing = 200.0;
+  settings_aerial_grid_map.resolution = 1.0;
+  grid_map::AerialGridMap map(settings_aerial_grid_map);
+
+  LOG(INFO) << "Create DSM (batch).";
+  dsm::Settings settings_dsm;
+  settings_dsm.center_easting = settings_aerial_grid_map.center_easting;
+  settings_dsm.center_northing = settings_aerial_grid_map.center_northing;
+  dsm::Dsm digital_surface_map(settings_dsm);
+  digital_surface_map.initializeAndFillKdTree(point_cloud);
+  digital_surface_map.updateElevationLayer(map.getMutable());
+
+  LOG(INFO) << "Publish until shutdown.";
+  map.publishUntilShutdown();
 
   return 0;
 }

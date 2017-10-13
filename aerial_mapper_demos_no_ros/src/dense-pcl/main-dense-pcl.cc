@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
   // TODO(hitimo): Remove ROS dependency here.
-  ros::init(argc, argv, "dense_pcl");
+  ros::init(argc, argv, "main_dense_pcl");
 
   // Parse input parameters.
   const std::string& base = FLAGS_dense_pcl_data_directory;
@@ -43,42 +43,32 @@ int main(int argc, char **argv) {
                                FLAGS_dense_pcl_origin_elevation_m);
   LOG(INFO) << "Origin: " << origin.transpose() << std::endl;
 
-  // Load camera rig from file.
+  LOG(INFO) << "Loading camera rig from file.";
   io::AerialMapperIO io_handler;
   const std::string& filename_camera_rig_yaml = base + filename_camera_rig;
   std::shared_ptr<aslam::NCamera> ncameras =
       io_handler.loadCameraRigFromFile(filename_camera_rig_yaml);
   CHECK(ncameras);
 
-  // Load body poses from file.
+  LOG(INFO) << "Loading body poses from file.";
   Poses T_G_Bs;
   const std::string& path_filename_poses = base + filename_poses;
   io::PoseFormat pose_format = io::PoseFormat::Standard;
   io_handler.loadPosesFromFile(pose_format, path_filename_poses, &T_G_Bs);
   io_handler.subtractOriginFromPoses(origin, &T_G_Bs);
 
-  // Load images from file.
+  LOG(INFO) << "Loading images from file.";
   size_t num_poses = T_G_Bs.size();
   Images images;
   io_handler.loadImagesFromFile(filename_images, num_poses, &images);
 
-  // Perform dense reconstruction using planar rectification.
-  dense_pcl::Settings settings;
-  dense_pcl::PlanarRectification
-      online_planar_rectification(ncameras, settings);
-  size_t skip = 0u;
-  for (size_t i = 0u; i < images.size(); ++i) {
-    LOG(INFO) << i << "/" << images.size();
-    cv::Mat image = images[i];
-    if (++skip % FLAGS_dense_pcl_use_every_nth_image == 0) {
-      LOG(INFO) << "i = " << i;
-      const Pose& T_G_B = T_G_Bs[i];
-      online_planar_rectification.addFrame(T_G_B, image);
-      cv::imshow("Image", image);
-      cv::waitKey(0);
-    }
-  }
-  LOG(INFO) << "Finished!";
+  LOG(INFO) << "Perform dense reconstruction using planar rectification.";
+  dense_pcl::Settings settings_dense_pcl;
+  settings_dense_pcl.use_every_nth_image = FLAGS_dense_pcl_use_every_nth_image;
+  dense_pcl::PlanarRectification dense_reconstruction(ncameras,
+                                                      settings_dense_pcl);
+  Aligned<std::vector, Eigen::Vector3d>::type point_cloud;
+  dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud);
 
   return 0;
 }

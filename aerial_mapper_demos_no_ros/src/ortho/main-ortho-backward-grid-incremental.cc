@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
 
-  ros::init(argc, argv, "ortho_backward_grid");
+  ros::init(argc, argv, "ortho_backward_grid_incremental");
   ros::Time::init();
 
   // Parse input parameters.
@@ -72,49 +72,63 @@ int main(int argc, char** argv) {
   Images images;
   io_handler.loadImagesFromFile(filename_images, num_poses, &images);
 
-  // Retrieve dense point cloud.
-  Aligned<std::vector, Eigen::Vector3d>::type point_cloud;
-  if (FLAGS_load_point_cloud_from_file) {
-    // Either load point cloud from file..
-    CHECK(!FLAGS_point_cloud_filename.empty());
-    io_handler.loadPointCloudFromFile(FLAGS_point_cloud_filename, &point_cloud);
-  } else {
-    // .. or generate via dense reconstruction from poses and images.
-    dense_pcl::Settings settings_dense_pcl;
-    settings_dense_pcl.use_every_nth_image =
-        FLAGS_dense_pcl_use_every_nth_image;
-    dense_pcl::PlanarRectification dense_reconstruction(ncameras,
-                                                        settings_dense_pcl);
-    dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud);
-  }
-
-  LOG(INFO) << "Initialize layered map.";
+  // Set up layered map (grid_map).
   grid_map::Settings settings_aerial_grid_map;
   settings_aerial_grid_map.center_easting = 0.0;
   settings_aerial_grid_map.center_northing = 0.0;
   settings_aerial_grid_map.delta_easting = 200.0;
   settings_aerial_grid_map.delta_northing = 200.0;
-  settings_aerial_grid_map.resolution = 1.0;
+  settings_aerial_grid_map.resolution = 0.5;
   grid_map::AerialGridMap map(settings_aerial_grid_map);
 
-  LOG(INFO) << "Create DSM (batch).";
+  // Set up dense reconstruction.
+  dense_pcl::Settings settings_dense_pcl;
+  dense_pcl::PlanarRectification dense_reconstruction(ncameras,
+                                                      settings_dense_pcl);
+
+  // Set up digital surface map.
   dsm::Settings settings_dsm;
   settings_dsm.center_easting = settings_aerial_grid_map.center_easting;
   settings_dsm.center_northing = settings_aerial_grid_map.center_northing;
   dsm::Dsm digital_surface_map(settings_dsm);
-  digital_surface_map.initializeAndFillKdTree(point_cloud);
-  digital_surface_map.updateElevationLayer(map.getMutable());
 
-  LOG(INFO) << "Construct the orthomosaic (batch).";
+  // Set up orthomosaic.
   ortho::Settings settings_ortho;
   parseSettingsOrtho(&settings_ortho);
   ortho::OrthoBackwardGrid mosaic(ncameras, settings_ortho, map.getMutable());
-  // Orthomosaic via back-projecting cell center into image
-  // and quering pixel intensity in image.
-  mosaic.processBatchGridmap(T_G_Bs, images, map.getMutable());
 
-  LOG(INFO) << "Publish until shutdown.";
-  map.publishUntilShutdown();
+  // Run all modules incrementally.
+  Images images_subset;
+  Poses T_G_Bs_subset;
+  size_t skip = 0u;
+  size_t pcl_cnt=0;
+  for (size_t i = 0u; i < images.size(); ++i) {
+    images_subset.push_back(images[i]);
+    T_G_Bs_subset.push_back(T_G_Bs[i]);
+    if (++skip % FLAGS_dense_pcl_use_every_nth_image == 0) {
+      LOG(INFO) << "Processing image " << i << " of " << images.size();
+      Aligned<std::vector, Eigen::Vector3d>::type point_cloud;
+      dense_reconstruction.addFrame(T_G_Bs[i], images[i], &point_cloud);
+
+      if (pcl_cnt > 0) {
+      LOG(INFO) << "Filling kd-tree with " << point_cloud.size() << " points";
+      digital_surface_map.initializeAndFillKdTree(point_cloud);
+
+      LOG(INFO) << "Updating elevation layer";
+      digital_surface_map.updateElevationLayer(map.getMutable());
+
+      LOG(INFO) << "Updating orthomosaic layer with "
+                << T_G_Bs_subset.size() << " image-pose-pairs";
+      mosaic.processBatchGridmap(T_G_Bs_subset, images_subset,
+                                 map.getMutable());
+      LOG(INFO) << "Publishing";
+      map.publishOnce();
+      images_subset.clear();
+      T_G_Bs_subset.clear();
+      }
+      ++pcl_cnt;
+    }
+  }
 
   return 0;
 }

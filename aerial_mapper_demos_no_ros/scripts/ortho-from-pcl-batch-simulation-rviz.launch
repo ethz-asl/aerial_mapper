@@ -1,0 +1,10 @@
+<launch>
+
+# Rviz
+<node pkg="rviz" type="rviz" name="rviz" args="-d $(find aerial_mapper_demos_no_ros)/rviz/ortho.rviz"/>
+
+# Orthomosaic generation from pcl
+<arg name="flagfile" default="$(find aerial_mapper_demos_no_ros)/flags/ortho/ortho-from-pcl.ff" />
+<node pkg="aerial_mapper_demos_no_ros" type="aerial_mapper_demos_no_ros_ortho_from_pcl" name="demo_ortho_from_pcl_batch" output="screen" args="--flagfile=$(arg flagfile)" />
+
+</launch> 

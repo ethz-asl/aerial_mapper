@@ -5,13 +5,15 @@
  *      Author: andreas
  */
 #include <fstream>
-#include "mono_dense_reconstruction_nodes/test/Utils.h"
+//#include "mono_dense_reconstruction_nodes/test/Utils.h"
+#include <aerial-mapper-dense-pcl/Utils.h>
 
 void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
                                      const cv::Mat& cvPclIntensity,
                                      const std::string& referenceFrameName,
                                      const ros::Time& timestamp,
-                                     sensor_msgs::PointCloud2& rosPcl2Msg) {
+                                     sensor_msgs::PointCloud2& rosPcl2Msg,
+                                     std::vector<int>* point_cloud_intensities) {
   // Fill in new PointCloud2 message
   rosPcl2Msg.header.stamp = timestamp;
   rosPcl2Msg.header.frame_id = referenceFrameName;
@@ -51,15 +53,6 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
   float badPoint = std::numeric_limits<float>::quiet_NaN();  // NaN
   const unsigned char* intensityPtr;
   int offset = 0;
-
-  std::string filename = "/tmp/pointcloud.txt";
-  std::ofstream fs;
-  std::ifstream ifile(filename.c_str());
-  if (ifile) {
-    fs.open(filename.c_str(), std::fstream::app | std::fstream::out);
-  } else {
-    fs.open(filename.c_str());
-  }
   for (int v = 0; v < cvPcl.rows; ++v) {
     intensityPtr = cvPclIntensity.ptr<unsigned char>(v);
     for (int u = 0; u < cvPcl.cols; ++u, offset += rosPcl2Msg.point_step) {
@@ -75,10 +68,9 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
         uint8_t gray = intensityPtr[u];
         uint32_t rgb = (gray << 16) | (gray << 8) | gray;
         memcpy(&rosPcl2Msg.data[offset + 12], &rgb, sizeof(uint32_t));
-        fs << std::setprecision(12) << cvPcl.operator()(v, u)[0] << " "
-           << cvPcl.operator()(v, u)[1] << " " << cvPcl.operator()(v, u)[2]
-           << " " << int(gray) << std::endl;
-
+        if (point_cloud_intensities) {
+          point_cloud_intensities->push_back(int(gray));
+        }
       } else {
         // If current point is not valid copy NaN
         memcpy(&rosPcl2Msg.data[offset + 0], &badPoint,  // x
@@ -92,7 +84,6 @@ void Utils::convertCvPclToRosPCL2Msg(const cv::Mat_<cv::Vec3f>& cvPcl,
       }
     }
   }
-  fs.close();
 }
 
 void Utils::convertDispMapToRosMsg(

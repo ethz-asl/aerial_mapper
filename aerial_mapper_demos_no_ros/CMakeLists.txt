@@ -25,6 +25,12 @@ cs_add_executable(${PROJECT_NAME}_ortho_backward_grid
 add_dependencies(${PROJECT_NAME}_ortho_backward_grid ${${PROJECT_NAME}_EXPORTED_TARGETS}})
 target_link_libraries(${PROJECT_NAME}_ortho_backward_grid ${catkin_LIBRARIES})
 
+# ORTHO-MOSAIC: backward/grid incremental
+cs_add_executable(${PROJECT_NAME}_ortho_backward_grid_incremental
+    src/ortho/main-ortho-backward-grid-incremental.cc)
+add_dependencies(${PROJECT_NAME}_ortho_backward_grid_incremental ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+target_link_libraries(${PROJECT_NAME}_ortho_backward_grid_incremental ${catkin_LIBRARIES})
+
 # ORTHO-MOSAIC: from point cloud
 cs_add_executable(${PROJECT_NAME}_ortho_from_pcl
     src/ortho/main-ortho-from-pcl.cc)
@@ -48,6 +54,18 @@ cs_add_executable(${PROJECT_NAME}_export_pix4d_geofile
     src/util/main-generate-pix4d-geofile.cc)
 add_dependencies(${PROJECT_NAME}_export_pix4d_geofile ${${PROJECT_NAME}_EXPORTED_TARGETS}})
 target_link_libraries(${PROJECT_NAME}_export_pix4d_geofile ${catkin_LIBRARIES})
+
+# TEST MULTI THREADING
+cs_add_executable(${PROJECT_NAME}_test_multi_threading
+    src/util/main-test-multi-threading.cc)
+add_dependencies(${PROJECT_NAME}_test_multi_threading ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+target_link_libraries(${PROJECT_NAME}_test_multi_threading ${catkin_LIBRARIES})
+
+# TEST COLOR LAYERS
+cs_add_executable(${PROJECT_NAME}_test_color_layers
+    src/util/main-test-color-layers.cc)
+add_dependencies(${PROJECT_NAME}_test_color_layers ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+target_link_libraries(${PROJECT_NAME}_test_color_layers ${catkin_LIBRARIES})
 
 
 #############

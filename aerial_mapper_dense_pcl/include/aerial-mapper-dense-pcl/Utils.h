@@ -28,7 +28,8 @@ class Utils {
                                        const cv::Mat& cvPclIntensity,
                                        const std::string& referenceFrameName,
                                        const ros::Time& timestamp,
-                                       sensor_msgs::PointCloud2& rosPcl2Msg);
+                                       sensor_msgs::PointCloud2& rosPcl2Msg,
+                                       std::vector<int>* point_cloud_intensities);
   static void convertDispMapToRosMsg(
       const cv::Mat& disparityMap, const std::string& referenceFrameName,
       const ros::Time& timestamp, stereo_msgs::DisparityImage& disparityRosMsg);

@@ -13,6 +13,7 @@
 
 // NON-SYSTEM
 #include <aerial-mapper-dense-pcl/Utils.h>
+#include <aerial-mapper-io/aerial-mapper-io.h>
 #include <aslam/cameras/ncamera.h>
 #include <aslam/pipeline/undistorter.h>
 #include <aslam/pipeline/undistorter-mapped.h>
@@ -36,6 +37,7 @@ namespace dense_pcl {
 
 struct Settings {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  size_t use_every_nth_image = 1;
 };
 
 class PlanarRectification {
@@ -44,7 +46,12 @@ class PlanarRectification {
 
   PlanarRectification(const std::shared_ptr<aslam::NCamera> ncameras,
                       const Settings& origin);
-  void addFrame(const aslam::Transformation& T_G_B, const cv::Mat& image);
+  void addFrame(const Pose& T_G_B, const Image& image,
+                Aligned<std::vector, Eigen::Vector3d>::type* point_cloud,
+                std::vector<int>* point_cloud_intensities = nullptr);
+  void addFrames(const Poses& T_G_Bs, const Images& images,
+                 Aligned<std::vector, Eigen::Vector3d>::type* point_cloud,
+                 std::vector<int>* point_cloud_intensities = nullptr);
 
  private:
   void showUndistortedCvWindow(const cv::Mat& image_undistorted);

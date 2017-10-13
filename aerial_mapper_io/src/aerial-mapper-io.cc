@@ -204,7 +204,6 @@ void AerialMapperIO::toStandardFormat(
   }
 }
 
-
 void AerialMapperIO::loadImagesFromFile(
     const std::string& filename_base, size_t num_poses, Images* images) {
   CHECK(images);

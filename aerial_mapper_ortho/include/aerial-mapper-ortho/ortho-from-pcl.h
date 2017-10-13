@@ -32,12 +32,17 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
 
+#include <grid_map_msgs/GridMap.h>
+#include <grid_map_core/iterators/GridMapIterator.hpp>
+#include <grid_map_core/GridMap.hpp>
+#include <grid_map_cv/grid_map_cv.hpp>
+
 namespace ortho {
 
 struct Settings {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   bool show_orthomosaic_opencv = true;
-  int interpolation_radius = 10;
+  int interpolation_radius = 2;
   double orthomosaic_resolution = 1.0;
   bool use_adaptive_interpolation = false;
   bool save_orthomosaic_jpg = true;
@@ -57,6 +62,14 @@ class OrthoFromPcl {
                const std::vector<int>& intensities,
                const Settings& settings);
 
+  OrthoFromPcl(const Settings& settings);
+
+  void process(const Aligned<std::vector,
+               Eigen::Vector3d>::type& pointcloud,
+               const std::vector<int>& intensities,
+               grid_map::GridMap* map);
+
+  /// Deprecated.
   void process(const Aligned<std::vector,
                Eigen::Vector3d>::type& pointcloud,
                const std::vector<int>& intensities);
