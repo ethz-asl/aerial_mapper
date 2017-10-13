@@ -119,8 +119,8 @@ int main(int argc, char** argv) {
 
       LOG(INFO) << "Updating orthomosaic layer with "
                 << T_G_Bs_subset.size() << " image-pose-pairs";
-      mosaic.processBatchGridmap(T_G_Bs_subset, images_subset,
-                                 map.getMutable());
+      mosaic.process(T_G_Bs_subset, images_subset, map.getMutable());
+
       LOG(INFO) << "Publishing";
       map.publishOnce();
       images_subset.clear();

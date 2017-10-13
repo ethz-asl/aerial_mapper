@@ -20,20 +20,12 @@
 #include <aslam/pipeline/undistorter.h>
 #include <aslam/pipeline/undistorter-mapped.h>
 #include <aslam/pipeline/visual-npipeline.h>
-#include <cv_bridge/cv_bridge.h>
 #include <Eigen/Dense>
-#include <geometry_msgs/PolygonStamped.h>
-#include <image_transport/image_transport.h>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <ros/ros.h>
-#include <sensor_msgs/fill_image.h>
-#include <sensor_msgs/Image.h>
-
-#include <grid_map_msgs/GridMap.h>
-#include <grid_map_core/iterators/GridMapIterator.hpp>
 #include <grid_map_core/GridMap.hpp>
+#include <grid_map_core/iterators/GridMapIterator.hpp>
 #include <grid_map_cv/grid_map_cv.hpp>
+#include <grid_map_msgs/GridMap.h>
+#include <ros/ros.h>
 
 namespace ortho {
 
@@ -56,43 +48,24 @@ struct Settings {
 };
 
 class OrthoBackwardGrid {
-
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   OrthoBackwardGrid(const std::shared_ptr<aslam::NCamera> ncameras,
                     const Settings& settings, grid_map::GridMap* map = nullptr);
 
-  void processBatchGridmap(const Poses& T_G_Bs, const Images& images,
-                           grid_map::GridMap* map);
+  void process(const Poses& T_G_Bs, const Images& images,
+               grid_map::GridMap* map) const;
 
-  void processIncrementalGridmap(const Poses& T_G_Cs, const Images& images);
-
-  /// Deprecated
-  void processBatch(const Poses& T_G_Cs, const Images& images);
-  /// Deprecated
-  void processIncremental(const Poses& T_G_Cs, const Images& images);
+ private:
 
   void updateOrthomosaicLayer(const Poses& T_G_Cs, const Images& images,
-                              grid_map::GridMap* map);
-
-  void updateOrthomosaicLayer2(const Poses& T_G_Cs, const Images& images,
-                               grid_map::GridMap* map);
+                              grid_map::GridMap* map) const;
 
   void updateOrthomosaicLayerMultiThreaded(const Poses& T_G_Cs,
                                            const Images& images,
-                                           grid_map::GridMap* map) {}
+                                           grid_map::GridMap* map) const {}
 
- private:
   void printParams() const;
-
-  /// Deprecated
-  void initializeGridMap();
-
-  /// Deprecated
-  void initializeAndFillKdTree();
-
-  /// Deprecated
-  void addElevationLayer();
 
   std::shared_ptr<aslam::NCamera> ncameras_;
   static constexpr size_t kFrameIdx = 0u;

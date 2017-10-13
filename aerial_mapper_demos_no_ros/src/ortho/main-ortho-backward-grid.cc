@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
   ortho::OrthoBackwardGrid mosaic(ncameras, settings_ortho, map.getMutable());
   // Orthomosaic via back-projecting cell center into image
   // and quering pixel intensity in image.
-  mosaic.processBatchGridmap(T_G_Bs, images, map.getMutable());
+  mosaic.process(T_G_Bs, images, map.getMutable());
 
   LOG(INFO) << "Publish until shutdown.";
   map.publishUntilShutdown();
