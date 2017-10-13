@@ -4,4 +4,4 @@ Dense point cloud generation using planar rectification.
 - Input: Images, camera poses, camera intrinsics
 - Output: Densified point cloud
 
-**Remark:** It is currently not planned to open-source the mono-dense-reconstruction pipeline.
+**Remark:** The mono-dense-reconstruction pipeline will be open-sourced soon. The mono-dense reconstruction pipeline was implemented by Andreas Jäger under the supervision of Sammy Omari and Margarita Chli.
