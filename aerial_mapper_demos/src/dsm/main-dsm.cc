@@ -17,13 +17,6 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 
-//DEFINE_int32(dsm_color_palette, 0, "");
-//DEFINE_string(dsm_data_directory, "", "");
-//DEFINE_string(dsm_point_cloud_filename, "", "");
-//DEFINE_double(dsm_origin_easting_m, 0.0, "");
-//DEFINE_double(dsm_origin_elevation_m, 0.0, "");
-//DEFINE_double(dsm_origin_northing_m, 0.0, "");
-
 DEFINE_string(data_directory, "", "");
 DEFINE_string(filename_camera_rig, "", "");
 DEFINE_string(filename_poses, "", "");
@@ -46,8 +39,6 @@ int main(int argc, char **argv) {
   // Load camera rig from file.
   io::AerialMapperIO io_handler;
   const std::string& filename_camera_rig_yaml = base + filename_camera_rig;
-  std::cout << "filename_camera_rig = "
-            << filename_camera_rig_yaml << std::endl;
   std::shared_ptr<aslam::NCamera> ncameras =
       io_handler.loadCameraRigFromFile(filename_camera_rig_yaml);
   CHECK(ncameras);
@@ -92,8 +83,7 @@ int main(int argc, char **argv) {
   settings_dsm.center_easting = settings_aerial_grid_map.center_easting;
   settings_dsm.center_northing = settings_aerial_grid_map.center_northing;
   dsm::Dsm digital_surface_map(settings_dsm);
-  digital_surface_map.initializeAndFillKdTree(point_cloud);
-  digital_surface_map.updateElevationLayer(map.getMutable());
+  digital_surface_map.process(point_cloud, map.getMutable());
 
   LOG(INFO) << "Publish until shutdown.";
   map.publishUntilShutdown();

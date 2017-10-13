@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
   Images images_subset;
   Poses T_G_Bs_subset;
   size_t skip = 0u;
-  size_t pcl_cnt=0;
+  size_t pcl_cnt = 0;
   for (size_t i = 0u; i < images.size(); ++i) {
     images_subset.push_back(images[i]);
     T_G_Bs_subset.push_back(T_G_Bs[i]);
@@ -111,20 +111,17 @@ int main(int argc, char** argv) {
       dense_reconstruction.addFrame(T_G_Bs[i], images[i], &point_cloud);
 
       if (pcl_cnt > 0) {
-      LOG(INFO) << "Filling kd-tree with " << point_cloud.size() << " points";
-      digital_surface_map.initializeAndFillKdTree(point_cloud);
+        LOG(INFO) << "Filling DSM with " << point_cloud.size() << " points";
+        digital_surface_map.process(point_cloud, map.getMutable());
 
-      LOG(INFO) << "Updating elevation layer";
-      digital_surface_map.updateElevationLayer(map.getMutable());
+        LOG(INFO) << "Updating orthomosaic layer with " << T_G_Bs_subset.size()
+                  << " image-pose-pairs";
+        mosaic.process(T_G_Bs_subset, images_subset, map.getMutable());
 
-      LOG(INFO) << "Updating orthomosaic layer with "
-                << T_G_Bs_subset.size() << " image-pose-pairs";
-      mosaic.process(T_G_Bs_subset, images_subset, map.getMutable());
-
-      LOG(INFO) << "Publishing";
-      map.publishOnce();
-      images_subset.clear();
-      T_G_Bs_subset.clear();
+        LOG(INFO) << "Publishing";
+        map.publishOnce();
+        images_subset.clear();
+        T_G_Bs_subset.clear();
       }
       ++pcl_cnt;
     }

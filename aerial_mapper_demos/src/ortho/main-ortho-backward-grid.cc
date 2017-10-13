@@ -102,8 +102,7 @@ int main(int argc, char** argv) {
   settings_dsm.center_easting = settings_aerial_grid_map.center_easting;
   settings_dsm.center_northing = settings_aerial_grid_map.center_northing;
   dsm::Dsm digital_surface_map(settings_dsm);
-  digital_surface_map.initializeAndFillKdTree(point_cloud);
-  digital_surface_map.updateElevationLayer(map.getMutable());
+  digital_surface_map.process(point_cloud, map.getMutable());
 
   LOG(INFO) << "Construct the orthomosaic (batch).";
   ortho::Settings settings_ortho;

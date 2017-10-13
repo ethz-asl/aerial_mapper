@@ -49,7 +49,7 @@ struct Settings {
   bool show_output = true;
   int interpolation_radius = 1.0;
   bool adaptive_interpolation = false;
-  //Eigen::Vector3d origin = Eigen::Vector3d(0.0, 0.0, 0.0);
+  // Eigen::Vector3d origin = Eigen::Vector3d(0.0, 0.0, 0.0);
   double center_easting = 0.0;
   double center_northing = 0.0;
 };
@@ -60,15 +60,15 @@ class Dsm {
 
   Dsm(const Settings& settings);
 
-  /// Deprecated
-  void process(const Aligned<std::vector, Eigen::Vector3d>::type& pointcloud);
+  void process(const Aligned<std::vector, Eigen::Vector3d>::type& point_cloud,
+               grid_map::GridMap* map);
 
+ private:
   void initializeAndFillKdTree(
       const Aligned<std::vector, Eigen::Vector3d>::type& point_cloud);
 
   void updateElevationLayer(grid_map::GridMap* map);
 
- private:
   void printParams();
 
   Settings settings_;

@@ -6,6 +6,8 @@
  */
 
 // NON-SYSTEM
+#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
+#include <aerial-mapper-grid-map/aerial-mapper-grid-map.h>
 #include <aerial-mapper-io/aerial-mapper-io.h>
 #include <aerial-mapper-ortho/ortho-from-pcl.h>
 #include <aerial-mapper-utils/utils-nearest-neighbor.h>
@@ -13,8 +15,6 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <ros/ros.h>
-#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
-#include <aerial-mapper-grid-map/aerial-mapper-grid-map.h>
 
 DEFINE_bool(ortho_from_pcl_show_orthomosaic_opencv, true, "");
 DEFINE_bool(ortho_from_pcl_use_adaptive_interpolation, false, "");
