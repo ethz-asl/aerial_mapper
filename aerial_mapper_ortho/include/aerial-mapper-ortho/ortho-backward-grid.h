@@ -30,11 +30,16 @@
 #include <sensor_msgs/fill_image.h>
 #include <sensor_msgs/Image.h>
 
+#include <grid_map_msgs/GridMap.h>
+#include <grid_map_core/iterators/GridMapIterator.hpp>
+#include <grid_map_core/GridMap.hpp>
+#include <grid_map_cv/grid_map_cv.hpp>
+
 namespace ortho {
 
 enum Mode { Incremental, Batch };
 
-struct SettingsGrid {
+struct Settings {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   double orthomosaic_easting_min = 0.0;
   double orthomosaic_northing_min = 0.0;
@@ -51,26 +56,52 @@ struct SettingsGrid {
 };
 
 class OrthoBackwardGrid {
+
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   OrthoBackwardGrid(const std::shared_ptr<aslam::NCamera> ncameras,
-                    const Poses& T_G_Bs, const Images& images,
-                    const SettingsGrid& settings);
-  void processBatch(const Poses& T_G_Cs,
-                    const Images& images);
-  void processBatchGridmap(const Poses& T_G_Cs,
-                           const Images& images);
-  void processIncremental(const Poses& T_G_Cs,
-                          const Images& images);
-  void processIncrementalGridmap(const Poses& T_G_Cs,
-                                 const Images& images);
+                    const Settings& settings, grid_map::GridMap* map = nullptr);
+
+  void processBatchGridmap(const Poses& T_G_Bs, const Images& images,
+                           grid_map::GridMap* map);
+
+  void processIncrementalGridmap(const Poses& T_G_Cs, const Images& images);
+
+  /// Deprecated
+  void processBatch(const Poses& T_G_Cs, const Images& images);
+  /// Deprecated
+  void processIncremental(const Poses& T_G_Cs, const Images& images);
+
+  void updateOrthomosaicLayer(const Poses& T_G_Cs, const Images& images,
+                              grid_map::GridMap* map);
+
+  void updateOrthomosaicLayer2(const Poses& T_G_Cs, const Images& images,
+                               grid_map::GridMap* map);
+
+  void updateOrthomosaicLayerMultiThreaded(const Poses& T_G_Cs,
+                                           const Images& images,
+                                           grid_map::GridMap* map) {}
 
  private:
   void printParams() const;
+
+  /// Deprecated
+  void initializeGridMap();
+
+  /// Deprecated
+  void initializeAndFillKdTree();
+
+  /// Deprecated
+  void addElevationLayer();
+
   std::shared_ptr<aslam::NCamera> ncameras_;
   static constexpr size_t kFrameIdx = 0u;
-  SettingsGrid settings_;
+  Settings settings_;
+
+  // Multi-threading.
+  std::unordered_map<size_t, grid_map::Index> map_sample_to_cell_index_;
+  std::vector<size_t> samples_idx_range_;
 };
-} // namespace ortho
+}  // namespace ortho
 
 #endif  // ORTHO_BACKWARD_GRID_H_

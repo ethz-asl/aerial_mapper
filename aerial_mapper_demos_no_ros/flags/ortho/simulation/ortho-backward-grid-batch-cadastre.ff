@@ -1,5 +1,5 @@
---alsologtostderr=false
---v=0
+--alsologtostderr=true
+--v=200
 --backward_grid_data_directory=/tmp/simulation/
 --backward_grid_filename_poses=opt_poses.txt
 --backward_grid_prefix_images=image_
