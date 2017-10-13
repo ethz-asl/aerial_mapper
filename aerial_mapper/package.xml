@@ -9,14 +9,12 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
-  <exec_depend>aerial_mapper_demos_no_ros</exec_depend>
-  <exec_depend>aerial_mapper_demos_ros</exec_depend>
+  <exec_depend>aerial_mapper_demos</exec_depend>
   <exec_depend>aerial_mapper_dense_pcl</exec_depend>
   <exec_depend>aerial_mapper_dsm</exec_depend>
   <exec_depend>aerial_mapper_grid_map</exec_depend>
   <exec_depend>aerial_mapper_io</exec_depend>
   <exec_depend>aerial_mapper_ortho</exec_depend>
-  <exec_depend>aerial_mapper_ros</exec_depend>
   <exec_depend>aerial_mapper_thirdparty</exec_depend>
   <exec_depend>aerial_mapper_utils</exec_depend>
 
