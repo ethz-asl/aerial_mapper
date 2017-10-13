@@ -76,13 +76,6 @@ class PlanarRectification {
   dense::VFQueue::Ptr buffer_;
   std::shared_ptr<aslam::NCamera> ncameras_;
   Settings settings_;
-
-  ros::Publisher pub_ground_points_;
-  Eigen::Matrix2Xd border_keypoints_;
-  ros::Publisher pub_pose_;
-  ros::Publisher pub_pose_C_;
-  ros::Publisher pub_pose_C3_;
-
 };
 
 } // namespace dense_pcl
