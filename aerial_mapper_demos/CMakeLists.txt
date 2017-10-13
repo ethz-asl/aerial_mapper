@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(aerial_mapper_demos_no_ros)
+project(aerial_mapper_demos)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)

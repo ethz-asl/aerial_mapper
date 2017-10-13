@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>aerial_mapper_demos_no_ros</name>
+  <name>aerial_mapper_demos</name>
   <version>0.0.1</version>
-  <description>aerial_mapper_grid_map</description>
+  <description>aerial_mapper_demos</description>
   <maintainer email="hitimo@ethz.ch">Timo Hinzmann</maintainer>
   <author email="hitimo@ethz.ch">Timo Hinzmann</author>
   <license>BSD</license>
