@@ -18,6 +18,9 @@
 - [**aerial_mapper_thirdparty:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_thirdparty) Package containing thirdparty code.
 - [**aerial_mapper_utils:**](https://github.com/ethz-asl/aerial_mapper/tree/master/aerial_mapper_utils) Package for common utility functions.
 
+### Getting started
+- [How to install](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-install)
+
 <hr>
 
 ### Publications
