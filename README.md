@@ -21,7 +21,7 @@
 <hr>
 
 ### Publications
-If you use this work in an academic context, please cite the following publication(s):
+If you use this work in an academic context, please cite the following publication:
 
 T. Hinzmann, J. L. Schönberger, M. Pollefeys, and R. Siegwart, **"Mapping on the Fly: Real-time 3D Dense Reconstruction, Digital Surface Map and Incremental Orthomosaic Generation for Unmanned Aerial Vehicles"**
 
@@ -33,3 +33,7 @@ T. Hinzmann, J. L. Schönberger, M. Pollefeys, and R. Siegwart, **"Mapping on th
    Year = {2017}
 }
 ```
+### Acknowledgment
+This work was partially funded by the European FP7 project SHERPA (FP7-600958) and the Federal office armasuisse Science and Technology under project number 050-45.
+
+
