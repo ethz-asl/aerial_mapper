@@ -38,16 +38,16 @@ add_dependencies(${PROJECT_NAME}_ortho_from_pcl ${${PROJECT_NAME}_EXPORTED_TARGE
 target_link_libraries(${PROJECT_NAME}_ortho_from_pcl ${catkin_LIBRARIES})
 
 # DSM
-cs_add_executable(${PROJECT_NAME}_dsm_from_file
+cs_add_executable(${PROJECT_NAME}_dsm
     src/dsm/main-dsm.cc)
-add_dependencies(${PROJECT_NAME}_dsm_from_file ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-target_link_libraries(${PROJECT_NAME}_dsm_from_file ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME}_dsm ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+target_link_libraries(${PROJECT_NAME}_dsm ${catkin_LIBRARIES})
 
 # DENSE POINT CLOUD
-cs_add_executable(${PROJECT_NAME}_dense_pcl_from_file
+cs_add_executable(${PROJECT_NAME}_dense_pcl
     src/dense-pcl/main-dense-pcl.cc)
-add_dependencies(${PROJECT_NAME}_dense_pcl_from_file ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-target_link_libraries(${PROJECT_NAME}_dense_pcl_from_file ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME}_dense_pcl ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+target_link_libraries(${PROJECT_NAME}_dense_pcl ${catkin_LIBRARIES})
 
 # PIX4D GEOFILE EXPORTER
 cs_add_executable(${PROJECT_NAME}_export_pix4d_geofile
