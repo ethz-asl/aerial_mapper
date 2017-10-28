@@ -31,7 +31,7 @@ OrthoForwardHomography::OrthoForwardHomography(
   prepareBlenderForNextImage();
   undistorter_ =
       aslam::createMappedUndistorter(
-        ncameras_->getCameraShared(0), 1.0, 1.0,
+        ncameras_->getCamera(0), 1.0, 1.0,
         aslam::InterpolationMethod::Linear);
   border_keypoints_.resize(Eigen::NoChange, 4);
   const size_t width = ncameras_->getCameraShared(0u)->imageWidth();
