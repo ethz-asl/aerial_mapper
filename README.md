@@ -21,7 +21,7 @@
 <hr>
 
 ### Publications
-If you use this work in an academic context, please cite the following publication(s):
+If you use this work in an academic context, please cite the following publication:
 
 T. Hinzmann, J. L. Schönberger, M. Pollefeys, and R. Siegwart, **"Mapping on the Fly: Real-time 3D Dense Reconstruction, Digital Surface Map and Incremental Orthomosaic Generation for Unmanned Aerial Vehicles"**
 
