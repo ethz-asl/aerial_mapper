@@ -55,17 +55,17 @@ cs_add_executable(${PROJECT_NAME}_export_pix4d_geofile
 add_dependencies(${PROJECT_NAME}_export_pix4d_geofile ${${PROJECT_NAME}_EXPORTED_TARGETS}})
 target_link_libraries(${PROJECT_NAME}_export_pix4d_geofile ${catkin_LIBRARIES})
 
-# TEST MULTI THREADING
-cs_add_executable(${PROJECT_NAME}_test_multi_threading
-    src/util/main-test-multi-threading.cc)
-add_dependencies(${PROJECT_NAME}_test_multi_threading ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-target_link_libraries(${PROJECT_NAME}_test_multi_threading ${catkin_LIBRARIES})
+## TEST MULTI THREADING
+#cs_add_executable(${PROJECT_NAME}_test_multi_threading
+#    src/util/main-test-multi-threading.cc)
+#add_dependencies(${PROJECT_NAME}_test_multi_threading ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+#target_link_libraries(${PROJECT_NAME}_test_multi_threading ${catkin_LIBRARIES})
 
-# TEST COLOR LAYERS
-cs_add_executable(${PROJECT_NAME}_test_color_layers
-    src/util/main-test-color-layers.cc)
-add_dependencies(${PROJECT_NAME}_test_color_layers ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-target_link_libraries(${PROJECT_NAME}_test_color_layers ${catkin_LIBRARIES})
+## TEST COLOR LAYERS
+#cs_add_executable(${PROJECT_NAME}_test_color_layers
+#    src/util/main-test-color-layers.cc)
+#add_dependencies(${PROJECT_NAME}_test_color_layers ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+#target_link_libraries(${PROJECT_NAME}_test_color_layers ${catkin_LIBRARIES})
 
 
 #############
