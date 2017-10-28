@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
   CHECK(ncameras);
   ortho::OrthoForwardHomography mosaic(ncameras, origin);
   if (mode == Mode::Incremental) {
-    for (size_t i = 0u; i < images.size()-200; ++i) {
+    for (size_t i = 0u; i < images.size(); ++i) {
       LOG(INFO) << i << "/" << images.size();
       CHECK(i < images.size());
       const Image& image = images[i];
