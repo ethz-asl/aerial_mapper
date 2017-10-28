@@ -25,12 +25,8 @@ int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
-  // TODO(hitimo): Remove ROS dependency here.
-  ros::init(argc, argv, "ortho_forward_homography");
 
-//  io::AerialMapperIO io_handler2;
-//  io_handler2.convertFromSimulation();
-//  CHECK(false);
+  ros::init(argc, argv, "ortho_forward_homography");
 
   // Parse input parameters.
   const std::string& base = FLAGS_forward_homography_data_directory;

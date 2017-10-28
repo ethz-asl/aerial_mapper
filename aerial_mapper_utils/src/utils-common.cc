@@ -1,4 +1,9 @@
-
+/*
+ *    Filename: utils-common.h
+ *  Created on: Oct 28, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
 
 #include "aerial-mapper-utils/utils-common.h"
 

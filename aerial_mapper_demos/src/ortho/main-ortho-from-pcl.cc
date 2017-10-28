@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
-  // TODO(hitimo): Remove ROS dependency here.
+
   ros::init(argc, argv, "ortho_from_pcl");
   ros::NodeHandle nh;
 

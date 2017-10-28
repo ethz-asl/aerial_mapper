@@ -1,3 +1,9 @@
+/*
+ *    Filename: utils-common.h
+ *  Created on: Oct 28, 2017
+ *      Author: Timo Hinzmann
+ *   Institute: ETH Zurich, Autonomous Systems Lab
+ */
 
 #ifndef UTILS_COMMON_H_
 #define UTILS_COMMON_H_

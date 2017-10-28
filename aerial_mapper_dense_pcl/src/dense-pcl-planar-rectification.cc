@@ -1,5 +1,5 @@
 /*
- *    Filename: main_from_file.cc
+ *    Filename: dense-pcl-planar-rectification.cc
  *  Created on: Jun 25, 2017
  *      Author: Timo Hinzmann, Andreas Jaeger
  *   Institute: ETH Zurich, Autonomous Systems Lab
