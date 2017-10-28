@@ -1,5 +1,5 @@
 /*
- *    Filename: main-ortho-backward-grid.cc
+ *    Filename: main-generate-pix4d-geofile.cc
  *  Created on: Jun 25, 2017
  *      Author: Timo Hinzmann
  *   Institute: ETH Zurich, Autonomous Systems Lab
