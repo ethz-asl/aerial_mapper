@@ -1,0 +1,7 @@
+--alsologtostderr=true
+--v=200
+--data_directory=/tmp/simulation/
+--filename_camera_rig=camera_fixed_wing.yaml
+--filename_poses=opt_poses.txt
+--prefix_images=image_
+--dense_pcl_use_every_nth_image=10

@@ -1,0 +1,11 @@
+--alsologtostderr=true
+--v=200
+--data_directory=/tmp/simulation/
+--filename_camera_rig=camera_fixed_wing.yaml
+--filename_poses=opt_poses.txt
+--prefix_images=image_
+--center_easting=0.0
+--center_northing=0.0
+--delta_easting=200.0
+--delta_northing=200.0
+--resolution=1.0

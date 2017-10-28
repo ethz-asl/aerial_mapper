@@ -1,0 +1,10 @@
+<launch>
+
+# Rviz
+<node pkg="rviz" type="rviz" name="rviz" args="-d $(find aerial_mapper_demos)/rviz/ortho.rviz"/>
+
+# Orthomosaic generation via batch grid
+<arg name="flagfile" default="$(find aerial_mapper_demos)/scripts/simulation/cadastre/ortho-backward-batch.ff" />
+<node pkg="aerial_mapper_demos" type="aerial_mapper_demos_ortho_backward_grid" name="demo_ortho_grid_batch" output="screen" args="--flagfile=$(arg flagfile)" />
+
+</launch> 
