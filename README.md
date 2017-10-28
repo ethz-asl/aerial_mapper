@@ -20,6 +20,8 @@
 
 ### Getting started
 - [How to install](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-install)
+- [How to run](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-run)
+- [How to contribute](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-contribute)
 
 <hr>
 
