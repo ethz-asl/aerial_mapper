@@ -40,7 +40,7 @@ class OrthoFromPcl {
 
   OrthoFromPcl(const Settings& settings);
 
-  void process(const Aligned<std::vector,
+  void process(const AlignedType<std::vector,
                Eigen::Vector3d>::type& pointcloud,
                const std::vector<int>& intensities,
                grid_map::GridMap* map) const;

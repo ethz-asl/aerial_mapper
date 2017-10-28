@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   io_handler.loadImagesFromFile(filename_images, num_poses, &images);
 
   // Retrieve dense point cloud.
-  Aligned<std::vector, Eigen::Vector3d>::type point_cloud;
+  AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
   if (!FLAGS_filename_point_cloud.empty()) {
     // Either load point cloud from file..
     io_handler.loadPointCloudFromFile(FLAGS_filename_point_cloud, &point_cloud);

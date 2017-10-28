@@ -299,7 +299,7 @@ void AerialMapperIO::exportPix4dGeofile(const Poses& T_G_Cs,
 
 void AerialMapperIO::loadPointCloudFromFile(
     const std::string& filename_point_cloud,
-    Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz) {
+    AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud_xyz) {
   CHECK(filename_point_cloud != "");
   CHECK(point_cloud_xyz);
   LOG(INFO) << "Loading pointcloud from: " << filename_point_cloud;
@@ -317,7 +317,7 @@ void AerialMapperIO::loadPointCloudFromFile(
 
 void AerialMapperIO::loadPointCloudFromFile(
     const std::string& filename_point_cloud,
-    Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz,
+    AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud_xyz,
     std::vector<int>* point_cloud_intensities) {
   CHECK(filename_point_cloud != "");
   CHECK(point_cloud_xyz);

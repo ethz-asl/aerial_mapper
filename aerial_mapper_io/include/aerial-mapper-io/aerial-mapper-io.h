@@ -45,12 +45,12 @@ class AerialMapperIO {
 
   void loadPointCloudFromFile(
       const std::string& filename_point_cloud,
-      Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz,
+      AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud_xyz,
       std::vector<int>* point_cloud_intensities);
 
   void loadPointCloudFromFile(
       const std::string& filename_point_cloud,
-      Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz);
+      AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud_xyz);
 
   void subtractOriginFromPoses(const Eigen::Vector3d& origin, Poses* T_G_Bs);
 

@@ -36,12 +36,12 @@ class Dsm {
 
   Dsm(const Settings& settings);
 
-  void process(const Aligned<std::vector, Eigen::Vector3d>::type& point_cloud,
+  void process(const AlignedType<std::vector, Eigen::Vector3d>::type& point_cloud,
                grid_map::GridMap* map);
 
  private:
   void initializeAndFillKdTree(
-      const Aligned<std::vector, Eigen::Vector3d>::type& point_cloud);
+      const AlignedType<std::vector, Eigen::Vector3d>::type& point_cloud);
 
   void updateElevationLayer(grid_map::GridMap* map);
 

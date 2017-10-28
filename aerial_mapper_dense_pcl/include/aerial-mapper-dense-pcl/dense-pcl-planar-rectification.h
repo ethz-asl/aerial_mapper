@@ -47,10 +47,10 @@ class PlanarRectification {
   PlanarRectification(const std::shared_ptr<aslam::NCamera> ncameras,
                       const Settings& origin);
   void addFrame(const Pose& T_G_B, const Image& image,
-                Aligned<std::vector, Eigen::Vector3d>::type* point_cloud,
+                AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
                 std::vector<int>* point_cloud_intensities = nullptr);
   void addFrames(const Poses& T_G_Bs, const Images& images,
-                 Aligned<std::vector, Eigen::Vector3d>::type* point_cloud,
+                 AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
                  std::vector<int>* point_cloud_intensities = nullptr);
 
  private:

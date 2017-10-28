@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
   settings_dense_pcl.use_every_nth_image = FLAGS_dense_pcl_use_every_nth_image;
   dense_pcl::PlanarRectification dense_reconstruction(ncameras,
                                                       settings_dense_pcl);
-  Aligned<std::vector, Eigen::Vector3d>::type point_cloud;
+  AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
   dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud);
 
   return 0;

@@ -20,7 +20,7 @@ namespace dsm {
 Dsm::Dsm(const Settings& settings) : settings_(settings) { printParams(); }
 
 void Dsm::initializeAndFillKdTree(
-    const Aligned<std::vector, Eigen::Vector3d>::type& point_cloud) {
+    const AlignedType<std::vector, Eigen::Vector3d>::type& point_cloud) {
   // Insert pointcloud in kdtree.
   cloud_kdtree_.pts.resize(point_cloud.size());
   LOG(INFO) << "Num points: " << point_cloud.size();
@@ -93,7 +93,7 @@ void Dsm::updateElevationLayer(grid_map::GridMap* map) {
 }
 
 void Dsm::process(
-    const Aligned<std::vector, Eigen::Vector3d>::type& point_cloud,
+    const AlignedType<std::vector, Eigen::Vector3d>::type& point_cloud,
     grid_map::GridMap* map) {
   CHECK(!point_cloud.empty());
   CHECK(map);

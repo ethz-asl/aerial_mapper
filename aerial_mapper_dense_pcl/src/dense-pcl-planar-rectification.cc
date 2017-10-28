@@ -110,7 +110,7 @@ PlanarRectification::PlanarRectification(
 
 void PlanarRectification::addFrames(
     const Poses& T_G_Bs, const Images& images,
-    Aligned<std::vector, Eigen::Vector3d>::type* point_cloud,
+    AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
     std::vector<int>* point_cloud_intensities) {
   CHECK(point_cloud);
   point_cloud->clear();
@@ -122,7 +122,7 @@ void PlanarRectification::addFrames(
   for (size_t i = 0u; i < images.size(); ++i) {
     if (++skip % settings_.use_every_nth_image == 0) {
       LOG(INFO) << "Processing image " << i << "/" << images.size();
-      Aligned<std::vector, Eigen::Vector3d>::type point_cloud_tmp;
+      AlignedType<std::vector, Eigen::Vector3d>::type point_cloud_tmp;
       std::vector<int> point_cloud_intensities_tmp;
       addFrame(T_G_Bs[i], images[i], &point_cloud_tmp,
                &point_cloud_intensities_tmp);
@@ -140,7 +140,7 @@ void PlanarRectification::addFrames(
 
 void PlanarRectification::addFrame(
     const Pose& T_G_B, const Image& image_raw,
-    Aligned<std::vector, Eigen::Vector3d>::type* point_cloud,
+    AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
     std::vector<int>* point_cloud_intensities) {
   CHECK(point_cloud);
   const ros::Time time1 = ros::Time::now();

@@ -18,7 +18,7 @@ OrthoFromPcl::OrthoFromPcl(const Settings& settings) : settings_(settings) {
 }
 
 void OrthoFromPcl::process(
-    const Aligned<std::vector, Eigen::Vector3d>::type& pointcloud,
+    const AlignedType<std::vector, Eigen::Vector3d>::type& pointcloud,
     const std::vector<int>& intensities, grid_map::GridMap* map) const {
   CHECK(!pointcloud.empty());
   CHECK(map);

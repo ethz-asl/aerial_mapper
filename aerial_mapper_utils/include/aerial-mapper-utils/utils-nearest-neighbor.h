@@ -16,7 +16,7 @@
 #include <aerial-mapper-thirdparty/nanoflann.hpp>
 
 template <template <typename, typename> class Container, typename Type>
-struct Aligned {
+struct AlignedType {
   typedef Container<Type, Eigen::aligned_allocator<Type> > type;
 };
 

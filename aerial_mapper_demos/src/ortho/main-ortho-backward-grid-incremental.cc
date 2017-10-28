@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
     T_G_Bs_subset.push_back(T_G_Bs[i]);
     if (++skip % FLAGS_dense_pcl_use_every_nth_image == 0) {
       LOG(INFO) << "Processing image " << i << " of " << images.size();
-      Aligned<std::vector, Eigen::Vector3d>::type point_cloud;
+      AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
       dense_reconstruction.addFrame(T_G_Bs[i], images[i], &point_cloud);
 
       if (pcl_cnt > 0) {
