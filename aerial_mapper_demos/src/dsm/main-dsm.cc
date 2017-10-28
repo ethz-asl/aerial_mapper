@@ -23,6 +23,11 @@ DEFINE_string(filename_poses, "", "");
 DEFINE_string(prefix_images, "", "");
 DEFINE_string(filename_point_cloud, "", "");
 DEFINE_int32(dense_pcl_use_every_nth_image, 10, "");
+DEFINE_double(center_easting, 0.0, "");
+DEFINE_double(center_northing, 0.0, "");
+DEFINE_double(delta_easting, 0.0, "");
+DEFINE_double(delta_northing, 0.0, "");
+DEFINE_double(resolution, 1.0, "");
 
 int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
@@ -71,11 +76,11 @@ int main(int argc, char **argv) {
 
   LOG(INFO) << "Initialize layered map.";
   grid_map::Settings settings_aerial_grid_map;
-  settings_aerial_grid_map.center_easting = 0.0;
-  settings_aerial_grid_map.center_northing = 0.0;
-  settings_aerial_grid_map.delta_easting = 200.0;
-  settings_aerial_grid_map.delta_northing = 200.0;
-  settings_aerial_grid_map.resolution = 1.0;
+  settings_aerial_grid_map.center_easting = FLAGS_center_easting;
+  settings_aerial_grid_map.center_northing = FLAGS_center_northing;
+  settings_aerial_grid_map.delta_easting = FLAGS_delta_easting;
+  settings_aerial_grid_map.delta_northing = FLAGS_delta_northing;
+  settings_aerial_grid_map.resolution = FLAGS_resolution;
   grid_map::AerialGridMap map(settings_aerial_grid_map);
 
   LOG(INFO) << "Create DSM (batch).";

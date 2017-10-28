@@ -119,16 +119,6 @@ int main(int argc, char** argv) {
 }
 
 void parseSettingsOrtho(ortho::Settings* settings_ortho) {
-  settings_ortho->orthomosaic_easting_min =
-      FLAGS_backward_grid_orthomosaic_easting_min;
-  settings_ortho->orthomosaic_easting_max =
-      FLAGS_backward_grid_orthomosaic_easting_max;
-  settings_ortho->orthomosaic_northing_min =
-      FLAGS_backward_grid_orthomosaic_northing_min;
-  settings_ortho->orthomosaic_northing_max =
-      FLAGS_backward_grid_orthomosaic_northing_max;
-  settings_ortho->orthomosaic_resolution =
-      FLAGS_backward_grid_orthomosaic_resolution;
   settings_ortho->show_orthomosaic_opencv =
       FLAGS_backward_grid_show_orthomosaic_opencv;
   settings_ortho->save_orthomosaic_jpg =

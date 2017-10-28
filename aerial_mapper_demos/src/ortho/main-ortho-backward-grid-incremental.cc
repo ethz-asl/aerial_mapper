@@ -37,7 +37,6 @@ DEFINE_bool(load_point_cloud_from_file, false, "");
 DEFINE_string(point_cloud_filename, "", "");
 DEFINE_int32(dense_pcl_use_every_nth_image, 10, "");
 
-void parseSettingsOrtho(ortho::Settings* settings_ortho);
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -94,7 +93,16 @@ int main(int argc, char** argv) {
 
   // Set up orthomosaic.
   ortho::Settings settings_ortho;
-  parseSettingsOrtho(&settings_ortho);
+  settings_ortho.show_orthomosaic_opencv =
+      FLAGS_backward_grid_show_orthomosaic_opencv;
+  settings_ortho.save_orthomosaic_jpg =
+      FLAGS_backward_grid_save_orthomosaic_jpg;
+  settings_ortho.orthomosaic_jpg_filename =
+      FLAGS_backward_grid_orthomosaic_jpg_filename;
+  settings_ortho.orthomosaic_elevation_m =
+      FLAGS_backward_grid_orthomosaic_elevation_m;
+  settings_ortho.use_digital_elevation_map =
+      FLAGS_backward_grid_use_digital_elevation_map;
   ortho::OrthoBackwardGrid mosaic(ncameras, settings_ortho, map.getMutable());
 
   // Run all modules incrementally.
@@ -128,27 +136,4 @@ int main(int argc, char** argv) {
   }
 
   return 0;
-}
-
-void parseSettingsOrtho(ortho::Settings* settings_ortho) {
-  settings_ortho->orthomosaic_easting_min =
-      FLAGS_backward_grid_orthomosaic_easting_min;
-  settings_ortho->orthomosaic_easting_max =
-      FLAGS_backward_grid_orthomosaic_easting_max;
-  settings_ortho->orthomosaic_northing_min =
-      FLAGS_backward_grid_orthomosaic_northing_min;
-  settings_ortho->orthomosaic_northing_max =
-      FLAGS_backward_grid_orthomosaic_northing_max;
-  settings_ortho->orthomosaic_resolution =
-      FLAGS_backward_grid_orthomosaic_resolution;
-  settings_ortho->show_orthomosaic_opencv =
-      FLAGS_backward_grid_show_orthomosaic_opencv;
-  settings_ortho->save_orthomosaic_jpg =
-      FLAGS_backward_grid_save_orthomosaic_jpg;
-  settings_ortho->orthomosaic_jpg_filename =
-      FLAGS_backward_grid_orthomosaic_jpg_filename;
-  settings_ortho->orthomosaic_elevation_m =
-      FLAGS_backward_grid_orthomosaic_elevation_m;
-  settings_ortho->use_digital_elevation_map =
-      FLAGS_backward_grid_use_digital_elevation_map;
 }
