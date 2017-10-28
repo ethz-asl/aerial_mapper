@@ -14,6 +14,7 @@
 #include <math.h>
 
 // NON-SYSTEM
+#include <aerial-mapper-utils/utils-common.h>
 #include <aslam/pipeline/undistorter.h>
 #include <aslam/pipeline/undistorter-mapped.h>
 
@@ -126,28 +127,19 @@ void OrthoBackwardGrid::process(const Poses& T_G_Bs, const Images& images,
 }
 
 void OrthoBackwardGrid::printParams() const {
-  const int nameWidth = 30;
-  std::cout << std::string(50, '*') << std::endl
-            << "Starting Orthomosaic image generation" << std::endl << std::left
-            << std::setw(nameWidth) << " - Easting_min: " << std::left
-            << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_easting_min) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Northing_min: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_northing_min) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Easting_max: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_easting_max) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Resolution:" << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_resolution) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Elevation (if no DSM):" << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_elevation_m) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Use grid_map:" << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.use_grid_map) << std::endl;
-  std::cout << std::string(50, '*') << std::endl;
+  std::stringstream out;
+  out << std::endl << std::string(50, '*') << std::endl
+      << "Orthomosaic parameters:" << std::endl
+      << utils::paramToString("Show orthomosaic opencv",
+                              settings_.show_orthomosaic_opencv)
+      << utils::paramToString("Save orthomosaic jpg",
+                              settings_.save_orthomosaic_jpg)
+      << utils::paramToString("Orthomosaic filename",
+                              settings_.orthomosaic_jpg_filename)
+//      << utils::paramToString("Use digital elevation map",
+//                              settings_.use_digital_elevation_map)
+      << std::string(50, '*') << std::endl;
+  LOG(INFO) << out.str();
 }
 
 }  // namespace ortho

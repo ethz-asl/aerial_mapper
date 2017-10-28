@@ -21,10 +21,6 @@
 namespace grid_map {
 
 struct Settings {
-  //double easting_min;
-  //double northing_min;
-  //double easting_max;
-  //double northing_max;
   double center_easting;
   double center_northing;
   double delta_easting;

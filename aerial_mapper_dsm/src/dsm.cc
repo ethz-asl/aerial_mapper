@@ -8,16 +8,16 @@
 // HEADER
 #include "aerial-mapper-dsm/dsm.h"
 
+// SYSTEM
+#include <iomanip>
+
 // NON-SYSTEM
-#include <pcl/conversions.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/PCLPointCloud2.h>
-#include <pcl/point_types.h>
-#include <pcl_ros/transforms.h>
+#include <aerial-mapper-utils/utils-common.h>
+#include <glog/logging.h>
 
 namespace dsm {
 
-Dsm::Dsm(const Settings& settings) : settings_(settings) {}
+Dsm::Dsm(const Settings& settings) : settings_(settings) { printParams(); }
 
 void Dsm::initializeAndFillKdTree(
     const Aligned<std::vector, Eigen::Vector3d>::type& point_cloud) {
@@ -42,35 +42,33 @@ void Dsm::updateElevationLayer(grid_map::GridMap* map) {
   for (grid_map::GridMapIterator it(*map); !it.isPastEnd(); ++it) {
     grid_map::Position position;
     map->getPosition(*it, position);
-
-    double interp_radius = 5.0;
     std::vector<std::pair<int, double> > indices_dists;
-    nanoflann::RadiusResultSet<double, int> resultSet(interp_radius,
-                                                      indices_dists);
+    nanoflann::RadiusResultSet<double, int> result_set(
+        settings_.interpolation_radius, indices_dists);
     const double query_pt[3] = {position.x(), position.y(), 0.0};
-    kd_tree_->findNeighbors(resultSet, query_pt, nanoflann::SearchParams());
+    kd_tree_->findNeighbors(result_set, query_pt, nanoflann::SearchParams());
 
     if (true) {
       double lambda = 1.0;
-      while (resultSet.size() == 0u) {
-        nanoflann::RadiusResultSet<double, int> tmp(lambda * interp_radius,
-                                                    indices_dists);
+      while (result_set.size() == 0u) {
+        nanoflann::RadiusResultSet<double, int> tmp(
+            lambda * settings_.interpolation_radius, indices_dists);
         kd_tree_->findNeighbors(tmp, query_pt, nanoflann::SearchParams());
         lambda *= 1.1;
-        if (lambda * interp_radius > 7.0) {
+        if (lambda * settings_.interpolation_radius > 7.0) {
           break;
         }
       }
     }
 
-    bool samples_in_interpolation_radius = resultSet.size() > 0u;
+    bool samples_in_interpolation_radius = result_set.size() > 0u;
     if (samples_in_interpolation_radius) {
       std::vector<double> distances;
       std::vector<double> heights;
-      CHECK(resultSet.size() > 0);
+      CHECK(result_set.size() > 0);
       distances.clear();
       heights.clear();
-      for (const std::pair<int, double>& s : resultSet.m_indices_dists) {
+      for (const std::pair<int, double>& s : result_set.m_indices_dists) {
         distances.push_back(s.second);
         heights.push_back(cloud_kdtree_.pts[s.first].z);
       }
@@ -104,19 +102,16 @@ void Dsm::process(
 }
 
 void Dsm::printParams() {
-  static constexpr int nameWidth = 30;
-  std::cout << std::string(50, '*') << std::endl
-            << "Starting Digital Elevation Map generation" << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Resolution: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.resolution) << std::endl << std::left
-            << std::setw(nameWidth) << " - Interp. radius: " << std::left
-            << std::setw(nameWidth)
-            << std::to_string(settings_.interpolation_radius) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - Color Palette: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.color_palette) << std::endl;
-  std::cout << std::string(50, '*') << std::endl;
+  std::stringstream out;
+  out << std::endl << std::string(50, '*') << std::endl
+      << "DSM parameters:" << std::endl
+      << utils::paramToString("Interp. radius", settings_.interpolation_radius)
+      << utils::paramToString("Adaptive interp.",
+                              settings_.adaptive_interpolation)
+      << utils::paramToString("Center easting", settings_.center_easting)
+      << utils::paramToString("Center northing", settings_.center_northing)
+      << std::string(50, '*') << std::endl;
+  LOG(INFO) << out.str();
 }
 
 }  // namespace dsm

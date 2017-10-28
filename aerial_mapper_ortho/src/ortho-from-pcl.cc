@@ -8,10 +8,12 @@
 // HEADER
 #include "aerial-mapper-ortho/ortho-from-pcl.h"
 
+// NON-SYSTEM
+#include <aerial-mapper-utils/utils-common.h>
+
 namespace ortho {
 
-OrthoFromPcl::OrthoFromPcl(const Settings& settings)
-    : settings_(settings) {
+OrthoFromPcl::OrthoFromPcl(const Settings& settings) : settings_(settings) {
   printParams();
 }
 
@@ -40,7 +42,7 @@ void OrthoFromPcl::process(
       nanoflann::L2_Adaptor<double, PC2KD>, PC2KD, kDimensionKdTree>
       my_kd_tree_t;
   my_kd_tree_t kd_tree(kDimensionKdTree, pc2kd,
-                     nanoflann::KDTreeSingleIndexAdaptorParams(kMaxLeaf));
+                       nanoflann::KDTreeSingleIndexAdaptorParams(kMaxLeaf));
   kd_tree.buildIndex();
 
   // Loop over all cells.
@@ -53,28 +55,28 @@ void OrthoFromPcl::process(
     double x = index(0);
     double y = index(1);
     std::vector<std::pair<int, double> > indices_dists;
-    nanoflann::RadiusResultSet<double, int> resultSet(
+    nanoflann::RadiusResultSet<double, int> result_set(
         settings_.interpolation_radius, indices_dists);
     const double query_pt[3] = {position.x(), position.y(), 0.0};
-    kd_tree.findNeighbors(resultSet, query_pt, nanoflann::SearchParams());
+    kd_tree.findNeighbors(result_set, query_pt, nanoflann::SearchParams());
     // Adaptive interpolation.
     if (settings_.use_adaptive_interpolation) {
       int lambda = 10;
-      while (resultSet.size() == 0u) {
+      while (result_set.size() == 0u) {
         nanoflann::RadiusResultSet<double, int> tmp(
             lambda * settings_.interpolation_radius, indices_dists);
         kd_tree.findNeighbors(tmp, query_pt, nanoflann::SearchParams());
         lambda *= 10;
       }
     }
-    bool samples_in_interpolation_radius = resultSet.size() > 0u;
+    bool samples_in_interpolation_radius = result_set.size() > 0u;
     if (samples_in_interpolation_radius) {
       std::vector<double> distances;
       std::vector<double> heights;
-      CHECK(resultSet.size() > 0);
+      CHECK(result_set.size() > 0);
       distances.clear();
       heights.clear();
-      for (const std::pair<int, double>& s : resultSet.m_indices_dists) {
+      for (const std::pair<int, double>& s : result_set.m_indices_dists) {
         distances.push_back(s.second);
         heights.push_back(cloud_kdtree.pts[s.first].z);
       }
@@ -111,27 +113,20 @@ void OrthoFromPcl::process(
 }
 
 void OrthoFromPcl::printParams() const {
-  static constexpr int nameWidth = 30;
-  std::cout << std::string(50, '*') << std::endl << "Starting Ortho-From-Pcl"
-            << std::endl << std::left << std::setw(nameWidth)
-            << " - easting_min: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_easting_min) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - easting_max: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_easting_max) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - northing_min: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_northing_min) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - northing_max: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_northing_max) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - resolution: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.orthomosaic_resolution) << std::endl
-            << std::left << std::setw(nameWidth)
-            << " - interp.radius: " << std::left << std::setw(nameWidth)
-            << std::to_string(settings_.interpolation_radius) << std::endl;
-  std::cout << std::string(50, '*') << std::endl;
+  std::stringstream out;
+  out << std::endl << std::string(50, '*') << std::endl
+      << "Ortho-From-Pcl parameters: " << std::endl
+      << utils::paramToString("Show orthomosaic opencv",
+                              settings_.show_orthomosaic_opencv)
+      << utils::paramToString("Interp. radius", settings_.interpolation_radius)
+      << utils::paramToString("Adapative interp.",
+                              settings_.use_adaptive_interpolation)
+      << utils::paramToString("Save orthomosaic jpg",
+                              settings_.save_orthomosaic_jpg)
+      << utils::paramToString("Orthomosaic jpg filename",
+                              settings_.orthomosaic_jpg_filename)
+      << std::string(50, '*') << std::endl;
+  LOG(INFO) << out.str();
 }
 
 }  // namespace ortho

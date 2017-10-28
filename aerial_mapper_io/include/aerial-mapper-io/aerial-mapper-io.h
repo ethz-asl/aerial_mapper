@@ -28,25 +28,20 @@ class AerialMapperIO {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   AerialMapperIO();
 
-  void loadPosesFromFile(const PoseFormat& format,
-                         const std::string& filename,
+  void loadPosesFromFile(const PoseFormat& format, const std::string& filename,
                          Poses* T_G_Bs);
-  void loadPosesFromFileStandard(const std::string& filename,
-                                 Poses* T_G_Bs);
-  void loadImagesFromFile(const std::string& filename_base,
-                          size_t num_poses,
+  void loadPosesFromFileStandard(const std::string& filename, Poses* T_G_Bs);
+  void loadImagesFromFile(const std::string& filename_base, size_t num_poses,
                           Images* images);
 
-  void loadImagesFromFile(
-      const std::string& directory, std::vector<std::string> image_names,
-      Images* images);
+  void loadImagesFromFile(const std::string& directory,
+                          std::vector<std::string> image_names, Images* images);
 
   aslam::NCamera::Ptr loadCameraRigFromFile(
-       const std::string& filename_ncameras_yaml);
+      const std::string& filename_ncameras_yaml);
 
-  void loadPosesFromFileRos(
-      const std::string& filename, Poses* T_G_Bs,
-      std::vector<int64_t>* timestamps_ns);
+  void loadPosesFromFileRos(const std::string& filename, Poses* T_G_Bs,
+                            std::vector<int64_t>* timestamps_ns);
 
   void loadPointCloudFromFile(
       const std::string& filename_point_cloud,
@@ -57,22 +52,19 @@ class AerialMapperIO {
       const std::string& filename_point_cloud,
       Aligned<std::vector, Eigen::Vector3d>::type* point_cloud_xyz);
 
-  void subtractOriginFromPoses(const Eigen::Vector3d& origin,
-                               Poses* T_G_Bs);
+  void subtractOriginFromPoses(const Eigen::Vector3d& origin, Poses* T_G_Bs);
 
-  void writeDataToDEMGeoTiffColor(
-      const cv::Mat& ortho_image, const Eigen::Vector2d& xy,
-      const std::string& geotiff_filename);
+  void writeDataToDEMGeoTiffColor(const cv::Mat& ortho_image,
+                                  const Eigen::Vector2d& xy,
+                                  const std::string& geotiff_filename);
 
-  void toGeoTiff(    const cv::Mat& orthomosaic,
-                                     const Eigen::Vector2d& xy,
-                                     const std::string& geotiff_filename);
+  void toGeoTiff(const cv::Mat& orthomosaic, const Eigen::Vector2d& xy,
+                 const std::string& geotiff_filename);
 
-  void toStandardFormat(
-      const std::string& directory,
-      const std::string& filename_vi_imu_poses,
-      const std::string& filename_blender_id_time,
-      const std::string& new_directory) ;
+  void toStandardFormat(const std::string& directory,
+                        const std::string& filename_vi_imu_poses,
+                        const std::string& filename_blender_id_time,
+                        const std::string& new_directory);
 
   void convertFromSimulation();
 
@@ -80,4 +72,3 @@ class AerialMapperIO {
 };
 }  // namespace io
 #endif  // namespace AERIAL_MAPPER_IO_H_
-

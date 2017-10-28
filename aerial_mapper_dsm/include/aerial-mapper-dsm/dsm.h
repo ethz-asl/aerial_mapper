@@ -9,47 +9,23 @@
 #define DSM_H_
 
 // SYSTEM
-#include <fstream>
-#include <iomanip>
 #include <memory>
 
 // NON-SYSTEM
-#include <aerial-mapper-utils/utils-color-palette.h>
 #include <aerial-mapper-utils/utils-nearest-neighbor.h>
-#include <aslam/cameras/ncamera.h>
-#include <aslam/pipeline/undistorter.h>
-#include <aslam/pipeline/undistorter-mapped.h>
-#include <cv_bridge/cv_bridge.h>
 #include <Eigen/Dense>
-#include <Eigen/StdVector>
-#include <gdal/cpl_string.h>
-#include <gdal/gdal.h>
-#include <gdal/gdal_priv.h>
-#include <gdal/ogr_spatialref.h>
-#include <image_transport/image_transport.h>
-#include <maplab-common/progress-bar.h>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <ros/ros.h>
-#include <sensor_msgs/fill_image.h>
-#include <sensor_msgs/Image.h>
-#include <sensor_msgs/PointCloud2.h>
-
-#include <grid_map_msgs/GridMap.h>
-#include <grid_map_core/iterators/GridMapIterator.hpp>
 #include <grid_map_core/GridMap.hpp>
+#include <grid_map_core/iterators/GridMapIterator.hpp>
 #include <grid_map_cv/grid_map_cv.hpp>
+#include <grid_map_msgs/GridMap.h>
+#include <ros/ros.h>
 
 namespace dsm {
 
 struct Settings {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  int color_palette = 6;
-  int resolution = 6;
-  bool show_output = true;
-  int interpolation_radius = 1.0;
+  int interpolation_radius = 5.0;
   bool adaptive_interpolation = false;
-  // Eigen::Vector3d origin = Eigen::Vector3d(0.0, 0.0, 0.0);
   double center_easting = 0.0;
   double center_northing = 0.0;
 };

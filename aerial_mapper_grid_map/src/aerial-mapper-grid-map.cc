@@ -26,20 +26,7 @@ void AerialGridMap::initialize() {
                             "num_observations", "elevation_angle_first_view",
                             "delta", "observation_index",
                             "observation_index_first"});
-
   map_.setFrameId("world");
-  //  const Eigen::Vector2d bottom_left =
-  //      Eigen::Vector2d(settings_.easting_min, settings_.northing_min);
-  //  const Eigen::Vector2d top_right =
-  //      Eigen::Vector2d(settings_.easting_max, settings_.northing_max);
-  //  const size_t width_east = std::fabs(bottom_left(0) - top_right(0));
-  //  const size_t height_north = std::fabs(bottom_left(1) - top_right(1));
-  //  const Eigen::Vector2d top_left =
-  //      bottom_left + Eigen::Vector2d(0.0, height_north);
-  //  const Eigen::Vector2d center =
-  //      top_left + Eigen::Vector2d(static_cast<double>(width_east) / 2.0,
-  //                                 -static_cast<double>(height_north) / 2.0);
-
   map_.setGeometry(
       grid_map::Length(settings_.delta_easting, settings_.delta_northing),
       settings_.resolution,

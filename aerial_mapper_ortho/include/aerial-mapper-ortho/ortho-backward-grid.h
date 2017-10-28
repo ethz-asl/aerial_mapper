@@ -29,22 +29,13 @@
 
 namespace ortho {
 
-enum Mode { Incremental, Batch };
-
 struct Settings {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  double orthomosaic_easting_min = 0.0;
-  double orthomosaic_northing_min = 0.0;
-  double orthomosaic_easting_max = 0.0;
-  double orthomosaic_northing_max = 0.0;
-  double orthomosaic_resolution = 1.0;
   bool show_orthomosaic_opencv = true;
   bool save_orthomosaic_jpg = true;
   std::string orthomosaic_jpg_filename = "";
   double orthomosaic_elevation_m = 0.0;
-  bool use_digital_elevation_map = false;
-  Mode mode = Mode::Batch;
-  bool use_grid_map = true;
+  bool use_digital_elevation_map = true;
 };
 
 class OrthoBackwardGrid {

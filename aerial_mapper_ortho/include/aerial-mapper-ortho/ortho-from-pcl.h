@@ -27,16 +27,11 @@ namespace ortho {
 
 struct Settings {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  bool show_orthomosaic_opencv = true;
+  bool show_orthomosaic_opencv = false;
   int interpolation_radius = 2;
-  double orthomosaic_resolution = 1.0;
   bool use_adaptive_interpolation = false;
-  bool save_orthomosaic_jpg = true;
+  bool save_orthomosaic_jpg = false;
   std::string orthomosaic_jpg_filename = "";
-  double orthomosaic_easting_min = 0.0;
-  double orthomosaic_northing_min = 0.0;
-  double orthomosaic_easting_max = 0.0;
-  double orthomosaic_northing_max = 0.0;
 };
 
 class OrthoFromPcl {
