@@ -24,7 +24,6 @@
   <depend>minkindr_conversions</depend>
   <depend>mono_dense_reconstruction</depend>
   <depend>mono_dense_reconstruction_nodes</depend>
-  <depend>maplab_common</depend>
   <depend>opencv3_catkin</depend>
   <depend>rosbag</depend>
   <depend>roscpp</depend>
