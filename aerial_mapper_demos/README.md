@@ -1,2 +1,2 @@
-# aerial_mapper_demos_no_ros
-Sample executables that do not require ROS.
+# aerial_mapper_demos
+Sample executables.
