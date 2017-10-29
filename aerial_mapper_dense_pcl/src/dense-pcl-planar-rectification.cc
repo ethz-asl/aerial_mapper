@@ -98,14 +98,8 @@ PlanarRectification::PlanarRectification(
   node_handle_.param<bool>("showInvDepthMapImages_optimizer",
                            optimizer_params->showInvDepthMapImages, true);
 
-  int optimization_set_size = 20;
-  dense::VFQueueParams::Ptr buffer_params(new dense::VFQueueParams);
-  buffer_params->maxSize = optimization_set_size;
-  buffer_params->minSizeToBeReady = optimization_set_size;  // Important!
-
-  // Optimizer.
-  optimizer_ = dense::Optimizer::Ptr(new dense::Optimizer(optimizer_params));
-  buffer_ = dense::VFQueue::Ptr(new dense::VFQueue(buffer_params));
+  pub_point_cloud_ = node_handle_.advertise<sensor_msgs::PointCloud2>(
+      "/planar_rectification/point_cloud", 1);
 }
 
 void PlanarRectification::addFrames(
@@ -240,9 +234,6 @@ void PlanarRectification::addFrame(
        << ">> Rectification And Densification:" << std::endl
        << "Avg Scene Depth: " << zAvg << " m" << std::endl;
     VLOG(300) << ss.str();
-
-    CHECK(buffer_);
-    buffer_->push(stereoPair->vF1);
   }
 
   T_G_B_last_ = T_G_B;
