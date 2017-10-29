@@ -1,8 +1,8 @@
 --alsologtostderr=false
 --v=0
---backward_grid_data_directory=/media/timo/scnd/catkin_ws_aerial_mapper/src/aerial_mapper/data/
+--backward_grid_data_directory=/tmp/simulation/
 --backward_grid_filename_poses=opt_poses.txt
---backward_grid_prefix_images=opt_image_
+--backward_grid_prefix_images=image_
 --backward_grid_filename_camera_rig=camera_fixed_wing.yaml
 --backward_grid_orthomosaic_easting_min=464499.0
 --backward_grid_orthomosaic_northing_min=5271960.0
