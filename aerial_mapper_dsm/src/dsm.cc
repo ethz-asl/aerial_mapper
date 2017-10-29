@@ -95,7 +95,11 @@ void Dsm::updateElevationLayer(grid_map::GridMap* map) {
 void Dsm::process(
     const AlignedType<std::vector, Eigen::Vector3d>::type& point_cloud,
     grid_map::GridMap* map) {
-  CHECK(!point_cloud.empty());
+  if (point_cloud.empty()) {
+    LOG(WARNING) << "Passed empty point cloud to DSM module";
+    return;
+  }
+
   CHECK(map);
   initializeAndFillKdTree(point_cloud);
   updateElevationLayer(map);
