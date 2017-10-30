@@ -32,7 +32,7 @@ Raw images | Dense point cloud | Digital Surface Map |
 :---: | :---: | :---: | 
 ![](https://github.com/ethz-asl/aerial_mapper/wiki/raw_images.gif) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dense.gif)  | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dsm.png) 
 __Observation Angle <br> (red: nadir)__ | __Grid-based Orthomosaic__
-![](https://github.com/ethz-asl/aerial_mapper/wiki/angle.gif) | 
+![](https://github.com/ethz-asl/aerial_mapper/wiki/observation_angle.gif) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/ortho.gif)
 
 <hr>
 
