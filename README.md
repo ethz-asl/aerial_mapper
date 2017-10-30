@@ -31,7 +31,7 @@ Dense point cloud <br> (from virtual stereo pair, 2 images) | Digital Surface Ma
 Raw images | Dense point cloud | Digital Surface Map |
 :---: | :---: | :---: | 
 ![](https://github.com/ethz-asl/aerial_mapper/wiki/raw_images.gif) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dense.gif)  | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dsm.png) 
-__Observation Angle <br> (red: nadir)__ | __Grid-based Orthomosaic__ | __Textured DSM__ 
+__Observation Angle <br> (red: nadir)__ | __Grid-based Orthomosaic <br> (Cell resolution: 0.5m)__ | __Textured DSM__ 
 ![](https://github.com/ethz-asl/aerial_mapper/wiki/observation_angle.gif) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/ortho.gif) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/ortho_elevated.gif) 
 
 <hr>
