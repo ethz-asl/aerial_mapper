@@ -25,7 +25,7 @@ void AerialGridMap::initialize() {
   map_ = grid_map::GridMap({"ortho", "elevation", "elevation_angle",
                             "num_observations", "elevation_angle_first_view",
                             "delta", "observation_index",
-                            "observation_index_first"});
+                            "observation_index_first","colored_ortho"});
   map_.setFrameId("world");
   map_.setGeometry(
       grid_map::Length(settings_.delta_easting, settings_.delta_northing),
@@ -45,6 +45,7 @@ void AerialGridMap::initialize() {
   map_["observation_index"].setConstant(NAN);
   map_["observation_index_first"].setConstant(NAN);
   map_["delta"].setConstant(NAN);
+  map_["colored_ortho"].setConstant(NAN);
 }
 
 void AerialGridMap::publishUntilShutdown() {

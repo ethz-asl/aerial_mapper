@@ -48,6 +48,7 @@ void OrthoBackwardGrid::updateOrthomosaicLayer(const Poses& T_G_Cs,
   grid_map::Matrix& layer_elevation_angle = (*map)["elevation_angle"];
   const grid_map::Matrix& layer_elevation = (*map)["elevation"];
   grid_map::Matrix& layer_observation_index = (*map)["observation_index"];
+  grid_map::Matrix& layer_colored_ortho = (*map)["colored_ortho"];
 
   ros::Time time1 = ros::Time::now();
   for (grid_map::GridMapIterator it(*map); !it.isPastEnd(); ++it) {
@@ -98,10 +99,20 @@ void OrthoBackwardGrid::updateOrthomosaicLayer(const Poses& T_G_Cs,
                                     static_cast<int>(camera.imageHeight()) - 1);
           const int kp_x = std::min(static_cast<int>(std::round(keypoint(0))),
                                     static_cast<int>(camera.imageWidth()) - 1);
-          const double gray_value = images[i].at<uchar>(kp_y, kp_x);
-
-          // Update orthomosaic.
-          layer_ortho(x, y) = gray_value;
+          if (settings_.colored_ortho) {
+            const cv::Vec3b rgb = images[i].at<cv::Vec3b>(kp_y, kp_x);
+            const Eigen::Vector3f color_vector_bgr(
+                static_cast<float>(rgb[2]) / 255.0,
+                static_cast<float>(rgb[1]) / 255.0,
+                static_cast<float>(rgb[0]) / 255.0);
+            float color_concatenated;
+            grid_map::colorVectorToValue(color_vector_bgr, color_concatenated);
+            layer_colored_ortho(x, y) = color_concatenated;
+          } else {
+            const double gray_value = images[i].at<uchar>(kp_y, kp_x);
+            // Update orthomosaic.
+            layer_ortho(x, y) = gray_value;
+          }
         }  // if better observation angle
       }    // if visible
     }      // loop images
@@ -136,8 +147,6 @@ void OrthoBackwardGrid::printParams() const {
                               settings_.save_orthomosaic_jpg)
       << utils::paramToString("Orthomosaic filename",
                               settings_.orthomosaic_jpg_filename)
-//      << utils::paramToString("Use digital elevation map",
-//                              settings_.use_digital_elevation_map)
       << std::string(50, '*') << std::endl;
   LOG(INFO) << out.str();
 }

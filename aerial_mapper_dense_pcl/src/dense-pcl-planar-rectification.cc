@@ -137,15 +137,25 @@ void PlanarRectification::addFrame(
     AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
     std::vector<int>* point_cloud_intensities) {
   CHECK(point_cloud);
+  // (Semi-global) Blockmatching requires images of type CV_8UC1.
+  cv::Mat image;
+  if (image_raw.type() == CV_8UC1) {
+  } else if (image_raw.type() == CV_8UC3) {
+    cv::cvtColor(image_raw, image, CV_RGB2GRAY);
+  } else {
+    LOG(FATAL) << "Image type not supported";
+  }
+  CHECK(image.type() == CV_8UC1);
+
   const ros::Time time1 = ros::Time::now();
   if (first_frame_) {
     Eigen::Matrix3d K_new;
     cv::Mat image_undistorted;
-    undistorter_->undistortImage(image_raw, downsample_factor_, &K_new,
+    undistorter_->undistortImage(image, downsample_factor_, &K_new,
                                  &image_undistorted);
     T_G_B_last_ = T_G_B;
     // image_undistorted_last_ = image_undistorted;
-    image_undistorted_last_ = image_raw;
+    image_undistorted_last_ = image;
     first_frame_ = false;
     return;
   }
@@ -165,7 +175,7 @@ void PlanarRectification::addFrame(
   cv::Mat image_undistorted;
   //  undistorter_->undistortImage(image_raw, downsample_factor_, &K_new,
   //                               &image_undistorted);
-  image_undistorted = image_raw;
+  image_undistorted = image;
 
   dense::StereoPair::Ptr stereoPair(
       new dense::StereoPair(K_, image_undistorted_last_, true, c_last, R_last,

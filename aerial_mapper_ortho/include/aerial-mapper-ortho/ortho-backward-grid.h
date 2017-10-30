@@ -36,6 +36,7 @@ struct Settings {
   std::string orthomosaic_jpg_filename = "";
   double orthomosaic_elevation_m = 0.0;
   bool use_digital_elevation_map = true;
+  bool colored_ortho = false;
 };
 
 class OrthoBackwardGrid {
