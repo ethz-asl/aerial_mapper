@@ -20,7 +20,7 @@
 
 ### Getting started
 - [How to install](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-install)
-- [How to run (+ dataset)](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-run)
+- [How to run (+ sample dataset)](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-run)
 - [How to contribute](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-contribute)
 
 Dense Point Cloud <br> (from Virtual Stereo Pair, 2 images) | Digital Surface Map <br> (DSM, exported as GeoTiff) | (Ortho-)Mosaic <br> (from Homography, 249 images) |
@@ -32,7 +32,7 @@ Dense Point Cloud <br> (from Virtual Stereo Pair, 2 images) | Digital Surface Ma
 ### Publications
 If you use this work in an academic context, please cite the following publication:
 
-T. Hinzmann, J. L. Schönberger, M. Pollefeys, and R. Siegwart, **"Mapping on the Fly: Real-time 3D Dense Reconstruction, Digital Surface Map and Incremental Orthomosaic Generation for Unmanned Aerial Vehicles"**
+T. Hinzmann, J. L. Schönberger, M. Pollefeys, and R. Siegwart, **"Mapping on the Fly: Real-time 3D Dense Reconstruction, Digital Surface Map and Incremental Orthomosaic Generation for Unmanned Aerial Vehicles"** [[PDF]](http://www.timohinzmann.com/publications/fsr_2017_hinzmann.pdf)
 
 ```
 @INPROCEEDINGS{fsr_hinzmann_2017,
