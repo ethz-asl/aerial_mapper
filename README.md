@@ -23,7 +23,7 @@
 - [How to run](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-run)
 - [How to contribute](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-contribute)
 
-Dense Point Cloud <br> (from Virtual Stereo Pair, 2 images) | Digital Surface Map <br> (DSM) | Orthomosaic <br> (from Homography) |
+Dense Point Cloud <br> (from Virtual Stereo Pair, 2 images) | Digital Surface Map <br> (DSM, exported as GeoTiff) | Orthomosaic <br> (from Homography, 249 images) |
 :---: | :---: | :---: |
 ![](https://github.com/ethz-asl/aerial_mapper/wiki/dense_preview.png) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dsm_preview.png)| ![](https://github.com/ethz-asl/aerial_mapper/wiki/ortho_preview.png) | [![]
 
