@@ -20,7 +20,7 @@
 
 ### Getting started
 - [How to install](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-install)
-- [How to run](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-run)
+- [How to run (+ dataset)](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-run)
 - [How to contribute](https://github.com/ethz-asl/aerial_mapper/wiki/How-to-contribute)
 
 Dense Point Cloud <br> (from Virtual Stereo Pair, 2 images) | Digital Surface Map <br> (DSM, exported as GeoTiff) | (Ortho-)Mosaic <br> (from Homography, 249 images) |
