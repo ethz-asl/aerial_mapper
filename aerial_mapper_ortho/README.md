@@ -8,4 +8,4 @@
 Available methods:
 - Homography-based mosaic (forward projection)
 - Grid-based orthomosaic (backward projection)
-- Incremental grid-based orthomosaic (backward projection)
+- Point cloud-based orthomosaic (forward projection)
