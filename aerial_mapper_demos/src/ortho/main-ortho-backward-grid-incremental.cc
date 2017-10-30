@@ -35,7 +35,8 @@ DEFINE_bool(backward_grid_grid_mode_batch, true, "");
 DEFINE_bool(backward_grid_use_grid_map, true, "");
 DEFINE_bool(load_point_cloud_from_file, false, "");
 DEFINE_string(point_cloud_filename, "", "");
-DEFINE_int32(dense_pcl_use_every_nth_image, 10, "");
+DEFINE_int32(dense_pcl_use_every_nth_image, 1, "");
+DEFINE_bool(backward_grid_colored_ortho, false, "");
 
 
 int main(int argc, char** argv) {
@@ -69,7 +70,8 @@ int main(int argc, char** argv) {
   // Load images from file.
   size_t num_poses = T_G_Bs.size();
   Images images;
-  io_handler.loadImagesFromFile(filename_images, num_poses, &images);
+  io_handler.loadImagesFromFile(filename_images, num_poses, &images,
+                                FLAGS_backward_grid_colored_ortho);
 
   // Set up layered map (grid_map).
   grid_map::Settings settings_aerial_grid_map;
@@ -103,6 +105,8 @@ int main(int argc, char** argv) {
       FLAGS_backward_grid_orthomosaic_elevation_m;
   settings_ortho.use_digital_elevation_map =
       FLAGS_backward_grid_use_digital_elevation_map;
+  settings_ortho.colored_ortho =
+      FLAGS_backward_grid_colored_ortho;
   ortho::OrthoBackwardGrid mosaic(ncameras, settings_ortho, map.getMutable());
 
   // Run all modules incrementally.

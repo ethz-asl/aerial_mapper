@@ -205,37 +205,47 @@ void AerialMapperIO::toStandardFormat(
 }
 
 void AerialMapperIO::loadImagesFromFile(
-    const std::string& filename_base, size_t num_poses, Images* images) {
+    const std::string& filename_base, size_t num_poses, Images* images,
+    bool load_colored_images) {
   CHECK(images);
   LOG(INFO) << "Loading images from directory+prefix: " << filename_base;
   for (size_t i = 0u; i < num_poses; ++i) {
     const std::string& filename =
         filename_base + std::to_string(i) + ".jpg";
-    cv::Mat image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat image;
+    if (!load_colored_images) {
+      image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    } else {
+      image = cv::imread(filename, CV_LOAD_IMAGE_COLOR);
+    }
     cv::imshow("Image", image);
     cv::waitKey(1);
     images->push_back(image);
   }
   CHECK(images->size() > 0) << "No images loaded.";
-  LOG(INFO) << "images->size() = " << images->size();
+  LOG(INFO) << "Number of images loaded: " << images->size();
 }
 
 void AerialMapperIO::loadImagesFromFile(
     const std::string& directory, std::vector<std::string> image_names,
-    Images* images) {
+    Images* images, bool load_colored_images) {
   CHECK(images);
   LOG(INFO) << "Loading images from directory: " << directory;
   for (const std::string image_name : image_names) {
     const std::string& filename =
         directory + image_name + ".png";
-    std::cout << "tryin to load " << filename << std::endl;
-    cv::Mat image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat image;
+    if (!load_colored_images) {
+      image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    } else {
+      image = cv::imread(filename, CV_LOAD_IMAGE_COLOR);
+    }
     cv::imshow("Image", image);
     cv::waitKey(1);
     images->push_back(image);
   }
   CHECK(images->size() > 0) << "No images loaded.";
-  LOG(INFO) << "images->size() = " << images->size();
+  LOG(INFO) << "Number of images loaded: " << images->size();
 }
 
 aslam::NCamera::Ptr AerialMapperIO::loadCameraRigFromFile(
@@ -247,8 +257,7 @@ aslam::NCamera::Ptr AerialMapperIO::loadCameraRigFromFile(
   ncameras = aslam::NCamera::loadFromYaml(filename_ncameras_yaml);
   CHECK(ncameras) << "Could not load the camera calibration from: "
                   << filename_ncameras_yaml;
-  std::cout << "leaving" << std::endl;
-  return ncameras;
+ return ncameras;
 }
 
 void AerialMapperIO::subtractOriginFromPoses(const Eigen::Vector3d& origin,

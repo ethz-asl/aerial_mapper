@@ -32,10 +32,11 @@ class AerialMapperIO {
                          Poses* T_G_Bs);
   void loadPosesFromFileStandard(const std::string& filename, Poses* T_G_Bs);
   void loadImagesFromFile(const std::string& filename_base, size_t num_poses,
-                          Images* images);
+                          Images* images, bool load_colored_images = false);
 
   void loadImagesFromFile(const std::string& directory,
-                          std::vector<std::string> image_names, Images* images);
+                          std::vector<std::string> image_names, Images* images,
+                          bool load_colored_images = false);
 
   aslam::NCamera::Ptr loadCameraRigFromFile(
       const std::string& filename_ncameras_yaml);
