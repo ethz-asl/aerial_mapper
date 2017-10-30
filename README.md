@@ -26,11 +26,11 @@
 ### Output samples
 Dense point cloud <br> (from virtual stereo pair, 2 images) | Digital Surface Map <br> (DSM, exported as GeoTiff) | (Ortho-)Mosaic <br> (from homography, 249 images) |
 :---: | :---: | :---: |
-![](https://github.com/ethz-asl/aerial_mapper/wiki/dense_preview.png) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dsm_preview.png)| ![](https://github.com/ethz-asl/aerial_mapper/wiki/ortho_preview.png) | [![]
+![](https://github.com/ethz-asl/aerial_mapper/wiki/dense_preview.png) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dsm_preview.png)| ![](https://github.com/ethz-asl/aerial_mapper/wiki/ortho_preview.png) 
 
-Raw images | Dense point cloud | Digital Surface Map | Grid-based Orthomosaic | Observation angle|
-:---: | :---: | :---: | :---: | :---: |
-![](https://github.com/ethz-asl/aerial_mapper/wiki/raw_images.gif) | | | | |
+Raw images | Dense point cloud | Digital Surface Map |
+:---: | :---: | :---: | 
+![](https://github.com/ethz-asl/aerial_mapper/wiki/raw_images.gif) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dense.gif)  | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dsm.png) 
 
 
 <hr>
