@@ -43,6 +43,6 @@ T. Hinzmann, J. L. Schönberger, M. Pollefeys, and R. Siegwart, **"Mapping on th
 }
 ```
 ### Acknowledgment
-This work was partially funded by the European FP7 project SHERPA (FP7-600958) and the Federal office armasuisse Science and Technology under project number 050-45.
+This work was partially funded by the European FP7 project SHERPA (FP7-600958) and the Federal office armasuisse Science and Technology under project number 050-45. Furthermore, the authors wish to thank [Lucas P. Teixeira](https://github.com/weblucas) from the [Vision for Robotics Lab](http://www.iris.ethz.ch/the-institute/vision-for-robotics-lab.html) at ETH Zurich for sharing scripts that bridge the gap between Blender and Gazebo.
 
 
