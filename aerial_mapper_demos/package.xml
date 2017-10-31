@@ -12,10 +12,11 @@
 
   <depend>aerial_mapper_dense_pcl</depend>
   <depend>aerial_mapper_dsm</depend>
+  <depend>aerial_mapper_google_maps_api</depend>
+  <depend>aerial_mapper_grid_map</depend>
   <depend>aerial_mapper_io</depend>
   <depend>aerial_mapper_ortho</depend>
   <depend>aerial_mapper_utils</depend>
-  <depend>aerial_mapper_grid_map</depend>
   <depend>aslam_cv_cameras</depend>
   <depend>aslam_cv_common</depend>
   <depend>aslam_cv_frames</depend>

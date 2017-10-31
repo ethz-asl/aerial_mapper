@@ -55,6 +55,12 @@ cs_add_executable(${PROJECT_NAME}_export_pix4d_geofile
 add_dependencies(${PROJECT_NAME}_export_pix4d_geofile ${${PROJECT_NAME}_EXPORTED_TARGETS}})
 target_link_libraries(${PROJECT_NAME}_export_pix4d_geofile ${catkin_LIBRARIES})
 
+# GOOGLE MAPS API DEMO
+cs_add_executable(${PROJECT_NAME}_google_maps_api
+    src/util/main-test-google-maps-api)
+add_dependencies(${PROJECT_NAME}_google_maps_api ${${PROJECT_NAME}_EXPORTED_TARGETS}})
+target_link_libraries(${PROJECT_NAME}_google_maps_api ${catkin_LIBRARIES})
+
 #############
 # QTCREATOR #
 #############
