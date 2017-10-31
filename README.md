@@ -26,7 +26,7 @@
 ### Output samples
 Dense point cloud <br> (from virtual stereo pair, 2 images) | Digital Surface Map <br> (DSM, exported as GeoTiff) | (Ortho-)Mosaic <br> (from homography, 249 images) |
 :---: | :---: | :---: |
-![](https://github.com/ethz-asl/aerial_mapper/wiki/dense_preview.png) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dsm_preview.png)| ![](https://github.com/ethz-asl/aerial_mapper/wiki/ortho_preview.png) 
+![](https://github.com/ethz-asl/aerial_mapper/wiki/dense_preview.png) | ![](https://github.com/ethz-asl/aerial_mapper/wiki/dsm_preview.png)| ![](https://github.com/ethz-asl/aerial_mapper/wiki/ortho_from_homogr.gif) 
 
 Raw images | Dense point cloud | Digital Surface Map |
 :---: | :---: | :---: | 
