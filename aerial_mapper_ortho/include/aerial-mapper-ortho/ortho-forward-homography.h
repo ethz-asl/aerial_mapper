@@ -48,7 +48,6 @@ class OrthoForwardHomography {
   void showOrthomosaicCvWindow(cv::Mat current_mosaic);
   void showUndistortedCvWindow(cv::Mat image_undistorted);
 
-  // TODO(hitimo): Move this to dedicated ROS package.
   void publishOrthomosaic(cv::Mat current_mosaic);
   void publishUndistortedImage(cv::Mat image);
 
@@ -61,12 +60,15 @@ class OrthoForwardHomography {
   cv::Mat result_mask_;
   Eigen::Vector3d origin_;
 
-  // TODO(hitimo): Move this to dedicated ROS package.
   ros::NodeHandle node_handle_;
   ros::Publisher pub_ground_points_;
   image_transport::ImageTransport image_transport_;
   image_transport::Publisher pub_undistorted_image_;
   image_transport::Publisher pub_orthomosaic_image_;
+
+  int image_idx = 0u;
+
+  static constexpr bool ksaveOrthoIncrementallyToFile = false;
 };
 
 } // namespace ortho
