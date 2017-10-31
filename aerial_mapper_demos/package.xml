@@ -32,5 +32,6 @@
   <depend>pcl_catkin</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>aerial_mapper_google_maps_api</depend>
 
 </package>
