@@ -1,10 +1,10 @@
 # aerial-mapper
 
 ### Overview
-- Load camera poses from different formats (PIX4D, COLMAP, etc.)
-- Generates a dense point cloud from raw images, camera poses and camera intriniscs
-- Generates Digital Surface Models (DSMs) from raw point clouds and exports e.g. to GeoTiff
-- Generates (ortho-)mosaics from raw images, camera poses and camera intrinsics
+- Load camera poses from different formats (such as [PIX4D](https://pix4d.com/), [COLMAP](https://colmap.github.io/))
+- Generates a dense point cloud from raw images, camera poses and camera intrinsics
+- Generates Digital Surface Models (DSMs) from raw point clouds and exports e.g. to [GeoTiff](http://www.gdal.org/frmt_gtiff.html) format
+- Different methods to generate (ortho-)mosaics from raw images, camera poses and camera intrinsics
 
 
 ### Package Overview
