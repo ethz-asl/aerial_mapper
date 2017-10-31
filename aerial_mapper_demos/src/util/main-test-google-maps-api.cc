@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
 
-  ros::init(argc, argv, "main_test_color_layers");
+  ros::init(argc, argv, "main_test_google_maps_api");
   ros::Time::init();
 
   const double zurich_long = 8.589189;
