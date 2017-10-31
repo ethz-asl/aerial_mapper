@@ -8,7 +8,7 @@
 Available methods:
 - Homography-based mosaic (forward projection):
   - (+) The complete field of view (FOV) of the images can be used.
-  - (-) Planar assumption assume high "flight altitude to terrain elevation" ratio.
+  - (-) Planar assumption assumes high "flight altitude to terrain elevation" ratio.
   - (-) Generates a mosaic but not a true orthomosaic.
 - Point cloud-based orthomosaic (forward projection)
   - (+) No assumption on flight altitude/terrain elevation.
