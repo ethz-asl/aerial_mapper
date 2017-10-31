@@ -12,7 +12,7 @@ Available methods:
   - (-) Generates a mosaic but not a true orthomosaic.
 - Point cloud-based orthomosaic (forward projection)
   - (+) No assumption on flight altitude/terrain elevation.
-  - (-) Holes in dense point cloud need to interpolated from nearby points.
+  - (-) Holes in dense point cloud need to be interpolated from nearby points.
   - (-) May result in reduced FOV (depending on the dense reconstruction).
 - Grid-based orthomosaic (backward projection)
   - (+) No assumption on flight altitude/terrain elevation.
