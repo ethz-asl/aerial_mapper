@@ -13,3 +13,8 @@
 --ortho_from_pcl_use_adaptive_interpolation=false
 --ortho_from_pcl_show_orthomosaic_opencv=true
 --ortho_from_pcl_orthomosaic_jpg_filename=/tmp/orthomosaic_from_pcl.jpg
+--ortho_from_pcl_center_easting=0.0
+--ortho_from_pcl_center_northing=0.0
+--ortho_from_pcl_delta_easting=200.0
+--ortho_from_pcl_delta_northing=200.0
+--ortho_from_pcl_resolution=0.5

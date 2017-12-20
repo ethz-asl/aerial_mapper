@@ -19,6 +19,11 @@
 DEFINE_bool(ortho_from_pcl_show_orthomosaic_opencv, true, "");
 DEFINE_bool(ortho_from_pcl_use_adaptive_interpolation, false, "");
 DEFINE_int32(ortho_from_pcl_interpolation_radius, 10, "");
+DEFINE_double(ortho_from_pcl_center_easting, 0.0, "");
+DEFINE_double(ortho_from_pcl_center_northing, 0.0, "");
+DEFINE_double(ortho_from_pcl_grid_delta_easting, 100.0, "");
+DEFINE_double(ortho_from_pcl_grid_delta_northing, 100.0, "");
+DEFINE_double(ortho_from_pcl_grid_resolution, 1.0, "");
 DEFINE_string(data_directory, "", "");
 DEFINE_string(ortho_from_pcl_orthomosaic_jpg_filename, "", "");
 DEFINE_string(ortho_from_pcl_point_cloud_filename, "", "");
@@ -82,11 +87,12 @@ int main(int argc, char** argv) {
 
   LOG(INFO) << "Initialize layered map.";
   grid_map::Settings settings_aerial_grid_map;
-  settings_aerial_grid_map.center_easting = 0.0;
-  settings_aerial_grid_map.center_northing = 0.0;
-  settings_aerial_grid_map.delta_easting = 200.0;
-  settings_aerial_grid_map.delta_northing = 200.0;
-  settings_aerial_grid_map.resolution = 0.5;
+  settings_aerial_grid_map.center_easting = FLAGS_backward_grid_center_easting;
+  settings_aerial_grid_map.center_northing =
+      FLAGS_backward_grid_center_northing;
+  settings_aerial_grid_map.delta_easting = FLAGS_backward_grid_delta_easting;
+  settings_aerial_grid_map.delta_northing = FLAGS_backward_grid_delta_northing;
+  settings_aerial_grid_map.resolution = FLAGS_backward_grid_resolution;
   grid_map::AerialGridMap map(settings_aerial_grid_map);
 
   // Orthomosaic from point cloud.

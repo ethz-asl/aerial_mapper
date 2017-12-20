@@ -1,14 +1,14 @@
+# general
 --alsologtostderr=false
 --v=0
+
+# dataset
 --backward_grid_data_directory=/tmp/simulation/
 --backward_grid_filename_poses=opt_poses.txt
 --backward_grid_prefix_images=image_
 --backward_grid_filename_camera_rig=camera_fixed_wing.yaml
---backward_grid_orthomosaic_easting_min=464499.0
---backward_grid_orthomosaic_northing_min=5271960.0
---backward_grid_orthomosaic_easting_max=465056.47
---backward_grid_orthomosaic_northing_max=5272700.0
---backward_grid_orthomosaic_resolution=1.0
+
+# backward grid orthomosaic
 --backward_grid_show_orthomosaic_opencv=false
 --backward_grid_save_orthomosaic_jpg=true
 --backward_grid_orthomosaic_jpg_filename=/tmp/orthomosaic_incremental.jpg
