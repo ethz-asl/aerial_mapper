@@ -16,3 +16,8 @@
 --backward_grid_use_digital_elevation_map=false
 --backward_grid_grid_mode_batch=false
 --backward_grid_colored_ortho=true
+--backward_grid_center_easting=0.0
+--backward_grid_center_northing=0.0
+--backward_grid_delta_easting=200.0
+--backward_grid_delta_northing=200.0
+--backward_grid_resolution=0.5
