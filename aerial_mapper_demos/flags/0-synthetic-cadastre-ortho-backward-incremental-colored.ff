@@ -21,3 +21,4 @@
 --backward_grid_delta_easting=200.0
 --backward_grid_delta_northing=200.0
 --backward_grid_resolution=0.5
+--backward_grid_use_multi_threads=true

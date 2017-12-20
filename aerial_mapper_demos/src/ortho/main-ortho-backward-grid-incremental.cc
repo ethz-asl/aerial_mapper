@@ -37,6 +37,7 @@ DEFINE_bool(load_point_cloud_from_file, false, "");
 DEFINE_string(point_cloud_filename, "", "");
 DEFINE_int32(dense_pcl_use_every_nth_image, 1, "");
 DEFINE_bool(backward_grid_colored_ortho, false, "");
+DEFINE_bool(backward_grid_use_multi_threads, false, "");
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -91,7 +92,7 @@ int main(int argc, char** argv) {
   dsm::Settings settings_dsm;
   settings_dsm.center_easting = settings_aerial_grid_map.center_easting;
   settings_dsm.center_northing = settings_aerial_grid_map.center_northing;
-  dsm::Dsm digital_surface_map(settings_dsm);
+  dsm::Dsm digital_surface_map(settings_dsm, map.getMutable());
 
   // Set up orthomosaic.
   ortho::Settings settings_ortho;
@@ -106,6 +107,7 @@ int main(int argc, char** argv) {
   settings_ortho.use_digital_elevation_map =
       FLAGS_backward_grid_use_digital_elevation_map;
   settings_ortho.colored_ortho = FLAGS_backward_grid_colored_ortho;
+  settings_ortho.use_multi_threads = FLAGS_backward_grid_use_multi_threads;
   ortho::OrthoBackwardGrid mosaic(ncameras, settings_ortho, map.getMutable());
 
   // Run all modules incrementally.
