@@ -37,6 +37,7 @@ struct Settings {
   double orthomosaic_elevation_m = 0.0;
   bool use_digital_elevation_map = true;
   bool colored_ortho = false;
+  bool use_multi_threads = true;
 };
 
 class OrthoBackwardGrid {
@@ -55,7 +56,7 @@ class OrthoBackwardGrid {
 
   void updateOrthomosaicLayerMultiThreaded(const Poses& T_G_Cs,
                                            const Images& images,
-                                           grid_map::GridMap* map) const {}
+                                           grid_map::GridMap* map) const;
 
   void printParams() const;
 
