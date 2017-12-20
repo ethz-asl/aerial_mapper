@@ -14,14 +14,11 @@
 namespace ortho {
 
 OrthoForwardHomography::OrthoForwardHomography(
-    const std::shared_ptr<aslam::NCamera>& ncameras,
-    const Eigen::Vector3d& origin)
+    const std::shared_ptr<aslam::NCamera>& ncameras, const Settings& settings)
     : ncameras_(ncameras),
-      origin_(origin),
+      settings_(settings),
       node_handle_(),
       image_transport_(image_transport::ImageTransport(node_handle_)),
-      pub_ground_points_(node_handle_.advertise<geometry_msgs::PolygonStamped>(
-          "/orthomosaic/ground_points", 1000)),
       pub_orthomosaic_image_(
           image_transport_.advertise("/orthomosaic/result", 1)),
       pub_undistorted_image_(
@@ -54,7 +51,7 @@ void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable) {
   cv::cvtColor(mask_image, mask_image, CV_RGB2GRAY);
 
   mask_image.convertTo(mask_image, CV_8U);
-  CHECK(mask_image.type() == CV_8U);
+  CHECK_EQ(mask_image.type(), CV_8U);
   CHECK(blender_ != nullptr);
   blender_->feed(image_warped_mutable.clone(), mask_image, cv::Point(0, 0));
 }
@@ -68,7 +65,7 @@ void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable,
   if (image_warped_mutable.type() != CV_16SC3) {
     image_warped_mutable.convertTo(image_warped_mutable, CV_16SC3);
   }
-  CHECK(mask_image.type() == CV_8U);
+  CHECK_EQ(mask_image.type(), CV_8U);
   CHECK(blender_ != nullptr);
 
   blender_->feed(image_warped_mutable.clone(), mask_image, cv::Point(0, 0));
@@ -82,10 +79,6 @@ void OrthoForwardHomography::updateOrthomosaic(const Pose& T_G_B,
 
   geometry_msgs::PolygonStamped polygon;
   polygon.header.stamp = ros::Time::now();
-  geometry_msgs::PolygonStamped polygon_stamped;
-  polygon_stamped.header.stamp = ros::Time::now();
-  polygon_stamped.header.frame_id = "/map";
-  polygon_stamped.polygon.points.reserve(4);
 
   const aslam::Transformation& T_G_C =
       T_G_B * ncameras_->get_T_C_B(kFrameIdx).inverse();
@@ -95,33 +88,31 @@ void OrthoForwardHomography::updateOrthomosaic(const Pose& T_G_B,
     Eigen::Vector3d C_ray;
     const Eigen::Vector2d& keypoint = border_keypoints_.col(border_pixel_index);
     ncameras_->getCameraShared(kFrameIdx)->backProject3(keypoint, &C_ray);
-    const double scale = -(T_G_C.getPosition()(2) - 414) /
-                         (T_G_C.getRotationMatrix() * C_ray)(2);
+    const double scale =
+        -(T_G_C.getPosition()(2) - settings_.ground_plane_elevation_m) /
+        (T_G_C.getRotationMatrix() * C_ray)(2);
     const Eigen::Vector3d& G_landmark =
         T_G_C.getPosition() + scale * T_G_C.getRotationMatrix() * C_ray -
-        origin_;
-    ground_points.push_back(
-        cv::Point2f(G_landmark(1) + 500.0, G_landmark(0) + 500.0));
+        settings_.origin;
+    ground_points.push_back(cv::Point2f(
+        G_landmark(1) +
+            static_cast<double>(settings_.width_mosaic_pixels) / 2.0,
+        G_landmark(0) +
+            static_cast<double>(settings_.height_mosaic_pixels) / 2.0));
     image_points.push_back(
         cv::Point2f(border_keypoints_.col(border_pixel_index)(0),
                     border_keypoints_.col(border_pixel_index)(1)));
-
-    geometry_msgs::Point32 point;
-    point.x = G_landmark(0);
-    point.y = G_landmark(1);
-    point.z = 0.0;
-    polygon_stamped.polygon.points.push_back(point);
   }
-  CHECK(ground_points.size() == 4);
-  CHECK(image_points.size() == 4);
-  pub_ground_points_.publish(polygon_stamped);
+  CHECK_EQ(ground_points.size(), 4u);
+  CHECK_EQ(image_points.size(), 4u);
 
   const cv::Mat& perspective_transformation_matrix =
       cv::getPerspectiveTransform(image_points, ground_points);
   cv::Mat image_warped;
-  cv::warpPerspective(image_undistorted, image_warped,
-                      perspective_transformation_matrix, cv::Size(1000, 1000),
-                      cv::INTER_NEAREST, cv::BORDER_CONSTANT);
+  cv::warpPerspective(
+      image_undistorted, image_warped, perspective_transformation_matrix,
+      cv::Size(settings_.width_mosaic_pixels, settings_.height_mosaic_pixels),
+      cv::INTER_NEAREST, cv::BORDER_CONSTANT);
   addImage(image_warped);
   blender_->blend(result_, result_mask_);
   prepareBlenderForNextImage();
@@ -134,14 +125,13 @@ void OrthoForwardHomography::updateOrthomosaic(const Pose& T_G_B,
     ss << std::setw(10) << std::setfill('0') << ++image_idx;
     cv::imwrite("/tmp/image_" + ss.str() + ".jpeg", result_);
   } else {
-    cv::imwrite("/tmp/result.jpg", result_);
+    cv::imwrite(settings_.filename_mosaic_output, result_);
   }
 
   ros::spinOnce();
 }
 
 void OrthoForwardHomography::batch(const Poses& T_G_Bs, const Images& images) {
-  const ros::Time time1 = ros::Time::now();
   for (size_t i = 0u; i < images.size(); ++i) {
     cv::Mat image_undistorted;
     undistorter_->processImage(images[i], &image_undistorted);
@@ -155,33 +145,34 @@ void OrthoForwardHomography::batch(const Poses& T_G_Bs, const Images& images) {
       const Eigen::Vector2d& keypoint =
           border_keypoints_.col(border_pixel_index);
       ncameras_->getCameraShared(kFrameIdx)->backProject3(keypoint, &C_ray);
-      const double scale = -(T_G_C.getPosition()(2) - 414) /
-                           (T_G_C.getRotationMatrix() * C_ray)(2);
+      const double scale =
+          -(T_G_C.getPosition()(2) - settings_.ground_plane_elevation_m) /
+          (T_G_C.getRotationMatrix() * C_ray)(2);
       const Eigen::Vector3d& G_landmark =
           T_G_C.getPosition() + scale * T_G_C.getRotationMatrix() * C_ray -
-          origin_;
-      ground_points.push_back(
-          cv::Point2f(G_landmark(1) + 500.0, G_landmark(0) + 500.0));
+          settings_.origin;
+      ground_points.push_back(cv::Point2f(
+          G_landmark(1) +
+              static_cast<double>(settings_.width_mosaic_pixels) / 2.0,
+          G_landmark(0) +
+              static_cast<double>(settings_.width_mosaic_pixels) / 2.0));
       image_points.push_back(
           cv::Point2f(border_keypoints_.col(border_pixel_index)(0),
                       border_keypoints_.col(border_pixel_index)(1)));
     }
-    CHECK(ground_points.size() == 4);
-    CHECK(image_points.size() == 4);
+    CHECK_EQ(ground_points.size(), 4u);
+    CHECK_EQ(image_points.size(), 4u);
     const cv::Mat& perspective_transformation_matrix =
         cv::getPerspectiveTransform(image_points, ground_points);
     cv::Mat image_warped;
-    cv::warpPerspective(image_undistorted, image_warped,
-                        perspective_transformation_matrix, cv::Size(1000, 1000),
-                        cv::INTER_NEAREST, cv::BORDER_CONSTANT);
+    cv::warpPerspective(
+        image_undistorted, image_warped, perspective_transformation_matrix,
+        cv::Size(settings_.width_mosaic_pixels, settings_.height_mosaic_pixels),
+        cv::INTER_NEAREST, cv::BORDER_CONSTANT);
     addImage(image_warped);
   }
 
   blender_->blend(result_, result_mask_);
-  const ros::Time time2 = ros::Time::now();
-  const ros::Duration& d1 = time2 - time1;
-  std::cout << d1 << std::endl;
-
   showOrthomosaicCvWindow(result_);
   // publishOrthomosaic(result_);
 
@@ -190,11 +181,11 @@ void OrthoForwardHomography::batch(const Poses& T_G_Bs, const Images& images) {
   m = 255 - m;
   cv::cvtColor(m, m, CV_RGB2GRAY);
   m.convertTo(m, CV_8U);
-  CHECK(m.type() == CV_8U);
+  CHECK_EQ(m.type(), CV_8U);
 
   // Set color of "unobserved pixels" (0 for black, 255 for white).
   result_.setTo(0, m);
-  cv::imwrite("/tmp/result.jpeg", result_);
+  cv::imwrite(settings_.filename_mosaic_output, result_);
 }
 
 void OrthoForwardHomography::showOrthomosaicCvWindow(cv::Mat current_mosaic) {
@@ -205,7 +196,8 @@ void OrthoForwardHomography::showOrthomosaicCvWindow(cv::Mat current_mosaic) {
 
 void OrthoForwardHomography::prepareBlenderForNextImage() {
   blender_ = cv::detail::Blender::createDefault(cv::detail::Blender::FEATHER);
-  cv::Rect rect(cv::Point(0, 0), cv::Point(1000, 1000));
+  cv::Rect rect(cv::Point(0, 0), cv::Point(settings_.width_mosaic_pixels,
+                                           settings_.height_mosaic_pixels));
   blender_->prepare(rect);
 }
 
@@ -218,7 +210,7 @@ void OrthoForwardHomography::showUndistortedCvWindow(
 void OrthoForwardHomography::publishOrthomosaic(cv::Mat image) {
   sensor_msgs::Image msg;
   msg.header.stamp = ros::Time::now();
-  msg.header.frame_id = "map";
+  msg.header.frame_id = settings_.nframe_id;
   sensor_msgs::fillImage(msg, sensor_msgs::image_encodings::MONO8, image.rows,
                          image.cols, image.cols, image.data);
   pub_orthomosaic_image_.publish(msg);
@@ -228,7 +220,7 @@ void OrthoForwardHomography::publishOrthomosaic(cv::Mat image) {
 void OrthoForwardHomography::publishUndistortedImage(cv::Mat image) {
   sensor_msgs::Image msg;
   msg.header.stamp = ros::Time::now();
-  msg.header.frame_id = "map";
+  msg.header.frame_id = settings_.nframe_id;
   sensor_msgs::fillImage(msg, sensor_msgs::image_encodings::MONO8, image.rows,
                          image.cols, image.cols, image.data);
   pub_undistorted_image_.publish(msg);

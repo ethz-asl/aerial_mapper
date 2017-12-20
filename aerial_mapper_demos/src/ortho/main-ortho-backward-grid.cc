@@ -21,11 +21,11 @@ DEFINE_string(backward_grid_data_directory, "", "");
 DEFINE_string(backward_grid_filename_poses, "", "");
 DEFINE_string(backward_grid_prefix_images, "", "");
 DEFINE_string(backward_grid_filename_camera_rig, "", "");
-DEFINE_double(backward_grid_orthomosaic_easting_min, 0.0, "");
-DEFINE_double(backward_grid_orthomosaic_easting_max, 0.0, "");
-DEFINE_double(backward_grid_orthomosaic_northing_min, 0.0, "");
-DEFINE_double(backward_grid_orthomosaic_northing_max, 0.0, "");
-DEFINE_double(backward_grid_orthomosaic_resolution, 0.0, "");
+DEFINE_double(backward_grid_center_easting, 0.0, "");
+DEFINE_double(backward_grid_center_northing, 0.0, "");
+DEFINE_double(backward_grid_delta_easting, 100.0, "");
+DEFINE_double(backward_grid_delta_northing, 100.0, "");
+DEFINE_double(backward_grid_resolution, 1.0, "");
 DEFINE_bool(backward_grid_show_orthomosaic_opencv, true, "");
 DEFINE_bool(backward_grid_save_orthomosaic_jpg, true, "");
 DEFINE_string(backward_grid_orthomosaic_jpg_filename, "", "");
@@ -90,11 +90,12 @@ int main(int argc, char** argv) {
 
   LOG(INFO) << "Initialize layered map.";
   grid_map::Settings settings_aerial_grid_map;
-  settings_aerial_grid_map.center_easting = 0.0;
-  settings_aerial_grid_map.center_northing = 0.0;
-  settings_aerial_grid_map.delta_easting = 200.0;
-  settings_aerial_grid_map.delta_northing = 200.0;
-  settings_aerial_grid_map.resolution = 1.0;
+  settings_aerial_grid_map.center_easting = FLAGS_backward_grid_center_easting;
+  settings_aerial_grid_map.center_northing =
+      FLAGS_backward_grid_center_northing;
+  settings_aerial_grid_map.delta_easting = FLAGS_backward_grid_delta_easting;
+  settings_aerial_grid_map.delta_northing = FLAGS_backward_grid_delta_northing;
+  settings_aerial_grid_map.resolution = FLAGS_backward_grid_resolution;
   grid_map::AerialGridMap map(settings_aerial_grid_map);
 
   LOG(INFO) << "Create DSM (batch).";

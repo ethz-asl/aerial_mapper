@@ -20,6 +20,10 @@ DEFINE_string(forward_homography_filename_camera_rig, "", "");
 DEFINE_double(forward_homography_origin_easting_m, 0.0, "");
 DEFINE_double(forward_homography_origin_northing_m, 0.0, "");
 DEFINE_double(forward_homography_origin_elevation_m, 0.0, "");
+DEFINE_double(forward_homography_ground_plane_elevation_m, 414.0, "");
+DEFINE_int32(forward_homography_width_mosaic_pixels, 1000, "");
+DEFINE_int32(forward_homography_height_mosaic_pixels, 1000, "");
+DEFINE_bool(forward_homography_batch, true, "");
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -32,8 +36,7 @@ int main(int argc, char** argv) {
   const std::string& base = FLAGS_forward_homography_data_directory;
   const std::string& filename_camera_rig =
       FLAGS_forward_homography_filename_camera_rig;
-  const std::string& filename_poses =
-      FLAGS_forward_homography_filename_poses;
+  const std::string& filename_poses = FLAGS_forward_homography_filename_poses;
   const std::string& filename_images =
       base + FLAGS_forward_homography_prefix_images;
   const Eigen::Vector3d origin(FLAGS_forward_homography_origin_easting_m,
@@ -60,12 +63,18 @@ int main(int argc, char** argv) {
 
   // Construct the mosaic by computing the homography that projects
   // the image onto the ground plane.
-  enum Mode { Incremental, Batch };
-  Mode mode;
-  mode = Mode::Batch;
+  ortho::Settings settings_ortho;
+  settings_ortho.ground_plane_elevation_m =
+      FLAGS_forward_homography_ground_plane_elevation_m;
+  settings_ortho.height_mosaic_pixels =
+      FLAGS_forward_homography_height_mosaic_pixels;
+  settings_ortho.width_mosaic_pixels =
+      FLAGS_forward_homography_width_mosaic_pixels;
+  settings_ortho.origin = origin;
+
   CHECK(ncameras);
-  ortho::OrthoForwardHomography mosaic(ncameras, origin);
-  if (mode == Mode::Incremental) {
+  ortho::OrthoForwardHomography mosaic(ncameras, settings_ortho);
+  if (!FLAGS_forward_homography_batch) {
     for (size_t i = 0u; i < images.size(); ++i) {
       LOG(INFO) << i << "/" << images.size();
       CHECK(i < images.size());
@@ -74,7 +83,7 @@ int main(int argc, char** argv) {
       const Pose& T_G_B = T_G_Bs[i];
       mosaic.updateOrthomosaic(T_G_B, image);
     }
-  } else if (mode == Mode::Batch) {
+  } else {
     mosaic.batch(T_G_Bs, images);
   }
 
