@@ -190,7 +190,7 @@ void PlanarRectification::addFrame(
                                    point_cloud_cv, point_cloud_intensity);
     const ros::Time time2 = ros::Time::now();
     const ros::Duration& d1 = time2 - time1;
-    std::cout << d1 << std::endl;
+    LOG(INFO) << "dt(dense_pcl): " << d1;
 
     for (int v = 0; v < point_cloud_cv.rows; ++v) {
       for (int u = 0; u < point_cloud_cv.cols; ++u) {
