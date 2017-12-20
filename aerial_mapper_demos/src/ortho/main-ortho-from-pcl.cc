@@ -21,9 +21,9 @@ DEFINE_bool(ortho_from_pcl_use_adaptive_interpolation, false, "");
 DEFINE_int32(ortho_from_pcl_interpolation_radius, 10, "");
 DEFINE_double(ortho_from_pcl_center_easting, 0.0, "");
 DEFINE_double(ortho_from_pcl_center_northing, 0.0, "");
-DEFINE_double(ortho_from_pcl_grid_delta_easting, 100.0, "");
-DEFINE_double(ortho_from_pcl_grid_delta_northing, 100.0, "");
-DEFINE_double(ortho_from_pcl_grid_resolution, 1.0, "");
+DEFINE_double(ortho_from_pcl_delta_easting, 100.0, "");
+DEFINE_double(ortho_from_pcl_delta_northing, 100.0, "");
+DEFINE_double(ortho_from_pcl_resolution, 1.0, "");
 DEFINE_string(data_directory, "", "");
 DEFINE_string(ortho_from_pcl_orthomosaic_jpg_filename, "", "");
 DEFINE_string(ortho_from_pcl_point_cloud_filename, "", "");
@@ -72,8 +72,8 @@ int main(int argc, char** argv) {
   if (FLAGS_load_point_cloud_from_file) {
     // Either load point cloud from file..
     CHECK(!FLAGS_filename_point_cloud.empty());
-    io_handler.loadPointCloudFromFile(
-        FLAGS_filename_point_cloud, &point_cloud, &point_cloud_intensities);
+    io_handler.loadPointCloudFromFile(FLAGS_filename_point_cloud, &point_cloud,
+                                      &point_cloud_intensities);
   } else {
     // .. or generate via dense reconstruction from poses and images.
     dense_pcl::Settings settings_dense_pcl;
@@ -87,12 +87,12 @@ int main(int argc, char** argv) {
 
   LOG(INFO) << "Initialize layered map.";
   grid_map::Settings settings_aerial_grid_map;
-  settings_aerial_grid_map.center_easting = FLAGS_backward_grid_center_easting;
+  settings_aerial_grid_map.center_easting = FLAGS_ortho_from_pcl_center_easting;
   settings_aerial_grid_map.center_northing =
-      FLAGS_backward_grid_center_northing;
-  settings_aerial_grid_map.delta_easting = FLAGS_backward_grid_delta_easting;
-  settings_aerial_grid_map.delta_northing = FLAGS_backward_grid_delta_northing;
-  settings_aerial_grid_map.resolution = FLAGS_backward_grid_resolution;
+      FLAGS_ortho_from_pcl_center_northing;
+  settings_aerial_grid_map.delta_easting = FLAGS_ortho_from_pcl_delta_easting;
+  settings_aerial_grid_map.delta_northing = FLAGS_ortho_from_pcl_delta_northing;
+  settings_aerial_grid_map.resolution = FLAGS_ortho_from_pcl_resolution;
   grid_map::AerialGridMap map(settings_aerial_grid_map);
 
   // Orthomosaic from point cloud.

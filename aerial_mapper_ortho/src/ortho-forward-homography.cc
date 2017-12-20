@@ -132,7 +132,6 @@ void OrthoForwardHomography::updateOrthomosaic(const Pose& T_G_B,
 }
 
 void OrthoForwardHomography::batch(const Poses& T_G_Bs, const Images& images) {
-  const ros::Time time1 = ros::Time::now();
   for (size_t i = 0u; i < images.size(); ++i) {
     cv::Mat image_undistorted;
     undistorter_->processImage(images[i], &image_undistorted);
@@ -151,7 +150,7 @@ void OrthoForwardHomography::batch(const Poses& T_G_Bs, const Images& images) {
           (T_G_C.getRotationMatrix() * C_ray)(2);
       const Eigen::Vector3d& G_landmark =
           T_G_C.getPosition() + scale * T_G_C.getRotationMatrix() * C_ray -
-          origin_;
+          settings_.origin;
       ground_points.push_back(cv::Point2f(
           G_landmark(1) +
               static_cast<double>(settings_.width_mosaic_pixels) / 2.0,
@@ -168,16 +167,12 @@ void OrthoForwardHomography::batch(const Poses& T_G_Bs, const Images& images) {
     cv::Mat image_warped;
     cv::warpPerspective(
         image_undistorted, image_warped, perspective_transformation_matrix,
-        cv::Size(ettings_.width_mosaic_pixels, settings_.height_mosaic_pixels),
+        cv::Size(settings_.width_mosaic_pixels, settings_.height_mosaic_pixels),
         cv::INTER_NEAREST, cv::BORDER_CONSTANT);
     addImage(image_warped);
   }
 
   blender_->blend(result_, result_mask_);
-  const ros::Time time2 = ros::Time::now();
-  const ros::Duration& d1 = time2 - time1;
-  std::cout << d1 << std::endl;
-
   showOrthomosaicCvWindow(result_);
   // publishOrthomosaic(result_);
 
