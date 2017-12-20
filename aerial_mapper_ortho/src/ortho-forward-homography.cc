@@ -51,7 +51,7 @@ void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable) {
   cv::cvtColor(mask_image, mask_image, CV_RGB2GRAY);
 
   mask_image.convertTo(mask_image, CV_8U);
-  CHECK(mask_image.type() == CV_8U);
+  CHECK_EQ(mask_image.type(), CV_8U);
   CHECK(blender_ != nullptr);
   blender_->feed(image_warped_mutable.clone(), mask_image, cv::Point(0, 0));
 }
@@ -65,7 +65,7 @@ void OrthoForwardHomography::addImage(cv::Mat image_warped_mutable,
   if (image_warped_mutable.type() != CV_16SC3) {
     image_warped_mutable.convertTo(image_warped_mutable, CV_16SC3);
   }
-  CHECK(mask_image.type() == CV_8U);
+  CHECK_EQ(mask_image.type(), CV_8U);
   CHECK(blender_ != nullptr);
 
   blender_->feed(image_warped_mutable.clone(), mask_image, cv::Point(0, 0));
@@ -103,8 +103,8 @@ void OrthoForwardHomography::updateOrthomosaic(const Pose& T_G_B,
         cv::Point2f(border_keypoints_.col(border_pixel_index)(0),
                     border_keypoints_.col(border_pixel_index)(1)));
   }
-  CHECK(ground_points.size() == 4);
-  CHECK(image_points.size() == 4);
+  CHECK_EQ(ground_points.size(), 4u);
+  CHECK_EQ(image_points.size(), 4u);
 
   const cv::Mat& perspective_transformation_matrix =
       cv::getPerspectiveTransform(image_points, ground_points);
@@ -161,8 +161,8 @@ void OrthoForwardHomography::batch(const Poses& T_G_Bs, const Images& images) {
           cv::Point2f(border_keypoints_.col(border_pixel_index)(0),
                       border_keypoints_.col(border_pixel_index)(1)));
     }
-    CHECK(ground_points.size() == 4);
-    CHECK(image_points.size() == 4);
+    CHECK_EQ(ground_points.size(), 4u);
+    CHECK_EQ(image_points.size(), 4u);
     const cv::Mat& perspective_transformation_matrix =
         cv::getPerspectiveTransform(image_points, ground_points);
     cv::Mat image_warped;
@@ -186,7 +186,7 @@ void OrthoForwardHomography::batch(const Poses& T_G_Bs, const Images& images) {
   m = 255 - m;
   cv::cvtColor(m, m, CV_RGB2GRAY);
   m.convertTo(m, CV_8U);
-  CHECK(m.type() == CV_8U);
+  CHECK_EQ(m.type(), CV_8U);
 
   // Set color of "unobserved pixels" (0 for black, 255 for white).
   result_.setTo(0, m);
