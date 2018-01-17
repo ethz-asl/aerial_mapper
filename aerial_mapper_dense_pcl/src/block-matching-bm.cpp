@@ -12,8 +12,7 @@ namespace stereo {
 #define UNKNOWN_DISPARITY 16320
 void BlockMatchingBM::computeDisparityMap(
     const RectifiedStereoPair& rectified_stereo_pair,
-    DensifiedStereoPair* densified_stereo_pair) {
-  ++image_counter_;
+    DensifiedStereoPair* densified_stereo_pair) const {
   CHECK(densified_stereo_pair);
 
   // Compute the disparity map.

@@ -40,12 +40,11 @@ class BlockMatchingSGBM : public BlockMatchingBase {
   }
 
   void computeDisparityMap(const RectifiedStereoPair& rectified_stereo_pair,
-                           DensifiedStereoPair* densified_stereo_pair);
+                           DensifiedStereoPair* densified_stereo_pair) const;
 
  private:
   cv::Ptr<cv::StereoSGBM> sgbm_;
   BlockMatchingParameters::SGBM sgbm_parameters_;
-
   static constexpr int kMaxInvalidDisparity = 1;
 };
 

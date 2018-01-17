@@ -30,10 +30,11 @@ class Densifier {
   void computePointCloud(const StereoRigParameters& stereo_pair,
                          const RectifiedStereoPair& rectified_stereo_pair,
                          DensifiedStereoPair* densified_stereo_pair,
-                         sensor_msgs::PointCloud2& point_cloud_ros);
+                         sensor_msgs::PointCloud2& point_cloud_ros) const;
 
-  void computeDisparityMap(const RectifiedStereoPair& rectified_stereo_pair,
-                           DensifiedStereoPair* densified_stereo_pair) {
+  inline void computeDisparityMap(
+      const RectifiedStereoPair& rectified_stereo_pair,
+      DensifiedStereoPair* densified_stereo_pair) const {
     block_matcher_->computeDisparityMap(rectified_stereo_pair,
                                         densified_stereo_pair);
   }

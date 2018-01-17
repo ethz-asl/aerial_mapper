@@ -28,7 +28,7 @@ class BlockMatchingBase {
 
   virtual void computeDisparityMap(
       const RectifiedStereoPair& rectified_stereo_pair,
-      DensifiedStereoPair* densified_stereo_pair) = 0;
+      DensifiedStereoPair* densified_stereo_pair) const = 0;
 };
 
 }  // namespace stereo

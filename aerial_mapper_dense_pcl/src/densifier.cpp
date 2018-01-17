@@ -26,7 +26,7 @@ void Densifier::computePointCloud(
     const StereoRigParameters& stereo_pair,
     const RectifiedStereoPair& rectified_stereo_pair,
     DensifiedStereoPair* densified_stereo_pair,
-    sensor_msgs::PointCloud2& point_cloud_ros) {
+    sensor_msgs::PointCloud2& point_cloud_ros) const {
   CHECK(densified_stereo_pair);
   CHECK_EQ(image_resolution_, densified_stereo_pair->disparity_map.size());
   densified_stereo_pair->point_cloud.create(

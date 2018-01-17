@@ -12,7 +12,7 @@ namespace stereo {
 
 void BlockMatchingSGBM::computeDisparityMap(
     const RectifiedStereoPair& rectified_stereo_pair,
-    DensifiedStereoPair* densified_stereo_pair) {
+    DensifiedStereoPair* densified_stereo_pair) const {
   CHECK(densified_stereo_pair);
 
   // Compute the disparity map.

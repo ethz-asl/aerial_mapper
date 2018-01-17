@@ -36,17 +36,15 @@ class BlockMatchingBM : public BlockMatchingBase {
     bm_->setSpeckleWindowSize(bm_params.speckle_window_size);
     bm_->setSpeckleRange(bm_params.speckle_range);
     bm_->setBlockSize(bm_params.block_size);
-    image_counter_ = 0;
   }
 
   void computeDisparityMap(const RectifiedStereoPair& rectified_stereo_pair,
-                           DensifiedStereoPair* densified_stereo_pair);
+                           DensifiedStereoPair* densified_stereo_pair) const;
 
  private:
   cv::Ptr<cv::StereoBM> bm_;
   BlockMatchingParameters::BM bm_parameters_;
   static constexpr int kMaxInvalidDisparity = 1;
-  size_t image_counter_;
 };
 
 }  // namespace stereo
