@@ -9,7 +9,6 @@
 #include "aerial-mapper-dense-pcl/block-matching-bm.h"
 
 namespace stereo {
-#define UNKNOWN_DISPARITY 16320
 void BlockMatchingBM::computeDisparityMap(
     const RectifiedStereoPair& rectified_stereo_pair,
     DensifiedStereoPair* densified_stereo_pair) const {
