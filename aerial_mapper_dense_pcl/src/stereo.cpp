@@ -188,7 +188,6 @@ void Stereo::processStereoFrame(
                            rectified_stereo_pair.image_left,
                            rectified_stereo_pair.image_right);
   }
-  cv::waitKey(0);
 }
 
 void Stereo::undistortRawImages(const cv::Mat& image_distorted_1,
