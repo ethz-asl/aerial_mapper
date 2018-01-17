@@ -15,8 +15,13 @@ endif()
 SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} -lpthread")
 
 cs_add_library(${PROJECT_NAME}
-  src/dense-pcl-planar-rectification.cc
+  src/stereo.cpp
+  src/densifier.cpp
+  src/rectifier.cpp
   src/Utils.cpp
+  src/dense-pcl-planar-rectification.cpp
+  src/block-matching-sgbm.cpp
+  src/block-matching-bm.cpp
 )
 
 #cs_add_executable(${PROJECT_NAME} src/main.cc src/fw-online-planar-rectification.cc src/Utils.cpp)
