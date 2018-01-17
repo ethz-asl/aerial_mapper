@@ -9,7 +9,7 @@
 #include <memory>
 
 // NON-SYSTEM
-#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
+#include <aerial-mapper-dense-pcl/stereo.h>
 #include <aerial-mapper-dsm/dsm.h>
 #include <aerial-mapper-grid-map/aerial-mapper-grid-map.h>
 #include <aerial-mapper-io/aerial-mapper-io.h>
@@ -17,25 +17,49 @@
 #include <gflags/gflags.h>
 #include <ros/ros.h>
 
-DEFINE_string(backward_grid_data_directory, "", "");
-DEFINE_string(backward_grid_filename_poses, "", "");
-DEFINE_string(backward_grid_prefix_images, "", "");
-DEFINE_string(backward_grid_filename_camera_rig, "", "");
-DEFINE_double(backward_grid_center_easting, 0.0, "");
-DEFINE_double(backward_grid_center_northing, 0.0, "");
-DEFINE_double(backward_grid_delta_easting, 100.0, "");
-DEFINE_double(backward_grid_delta_northing, 100.0, "");
-DEFINE_double(backward_grid_resolution, 1.0, "");
-DEFINE_bool(backward_grid_show_orthomosaic_opencv, true, "");
-DEFINE_bool(backward_grid_save_orthomosaic_jpg, true, "");
-DEFINE_string(backward_grid_orthomosaic_jpg_filename, "", "");
-DEFINE_double(backward_grid_orthomosaic_elevation_m, 0.0, "");
-DEFINE_bool(backward_grid_use_digital_elevation_map, true, "");
-DEFINE_bool(backward_grid_grid_mode_batch, true, "");
-DEFINE_bool(backward_grid_use_grid_map, true, "");
-DEFINE_bool(load_point_cloud_from_file, false, "");
-DEFINE_string(point_cloud_filename, "", "");
-DEFINE_int32(dense_pcl_use_every_nth_image, 10, "");
+DEFINE_string(backward_grid_data_directory, "",
+              "Directory to poses, images, and calibration file.");
+DEFINE_string(backward_grid_filename_poses, "",
+              "Name of the file that contains positions and orientations for "
+              "every camera in the global/world frame, i.e. T_G_B");
+DEFINE_string(backward_grid_prefix_images, "",
+              "Prefix of the images to be loaded, e.g. 'images_'");
+DEFINE_string(
+    backward_grid_filename_camera_rig, "",
+    "Name of the camera calibration file (intrinsics). File ending: .yaml");
+DEFINE_double(backward_grid_center_easting, 0.0,
+              "Center [m] of the grid_map (easting).");
+DEFINE_double(backward_grid_center_northing, 0.0,
+              "Center [m] of the grid_map (northing).");
+DEFINE_double(backward_grid_delta_easting, 100.0,
+              "Width [m] of the grid_map, starting from center.");
+DEFINE_double(backward_grid_delta_northing, 100.0,
+              "Height [m] of the grid_map, starting from center");
+DEFINE_double(backward_grid_resolution, 1.0, "Resolution of the grid_map [m].");
+DEFINE_bool(backward_grid_show_orthomosaic_opencv, true,
+            "Show the orthomosaic using opencv?");
+DEFINE_bool(backward_grid_save_orthomosaic_jpg, true,
+            "Save the orthomosaic as jpg to file?");
+DEFINE_string(backward_grid_orthomosaic_jpg_filename, "",
+              "Name of the output image storing the orthomsaic.");
+DEFINE_double(backward_grid_orthomosaic_elevation_m, 0.0,
+              "Height of the orthomosaic if flat ground assumption is used.");
+DEFINE_bool(backward_grid_use_digital_elevation_map, true,
+            "Use the digital elevation map for generating the orthomosaic? "
+            "Otherwise use flat ground assumption.");
+DEFINE_string(point_cloud_filename, "",
+              "Name of the file that contains the point cloud. If string is "
+              "empty, the point cloud is generated from the provided images, "
+              "camera poses, camera intrinsics");
+DEFINE_int32(dense_pcl_use_every_nth_image, 10,
+             "Only use every n-th image in the densification process.");
+DEFINE_bool(use_BM, true,
+            "Use BM Blockmatching if true. Use SGBM (=Semi-Global-) "
+            "Blockmatching if false.");
+DEFINE_bool(load_point_cloud_from_file, false,
+            "Load point cloud from file? Otherwise generate the point cloud "
+            "from the provided images, camera poses, camera intrinsicspoint "
+            "cloud from images.");
 
 void parseSettingsOrtho(ortho::Settings* settings_ortho);
 
@@ -80,12 +104,15 @@ int main(int argc, char** argv) {
     io_handler.loadPointCloudFromFile(FLAGS_point_cloud_filename, &point_cloud);
   } else {
     // .. or generate via dense reconstruction from poses and images.
-    dense_pcl::Settings settings_dense_pcl;
+    stereo::Settings settings_dense_pcl;
     settings_dense_pcl.use_every_nth_image =
         FLAGS_dense_pcl_use_every_nth_image;
-    dense_pcl::PlanarRectification dense_reconstruction(ncameras,
-                                                        settings_dense_pcl);
-    dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud);
+    LOG(INFO) << "Perform dense reconstruction using planar rectification.";
+    stereo::BlockMatchingParameters block_matching_params;
+    block_matching_params.use_BM = FLAGS_use_BM;
+    stereo::Stereo stereo(ncameras, settings_dense_pcl, block_matching_params);
+    AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
+    stereo.addFrames(T_G_Bs, images, &point_cloud);
   }
 
   LOG(INFO) << "Initialize layered map.";

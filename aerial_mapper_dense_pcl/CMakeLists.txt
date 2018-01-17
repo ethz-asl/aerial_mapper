@@ -15,17 +15,12 @@ endif()
 SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} -lpthread")
 
 cs_add_library(${PROJECT_NAME}
-  src/dense-pcl-planar-rectification.cc
-  src/Utils.cpp
+  src/stereo.cpp
+  src/densifier.cpp
+  src/rectifier.cpp
+  src/block-matching-sgbm.cpp
+  src/block-matching-bm.cpp
 )
-
-#cs_add_executable(${PROJECT_NAME} src/main.cc src/fw-online-planar-rectification.cc src/Utils.cpp)
-#add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-#target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
-
-#cs_add_executable(${PROJECT_NAME}_file src/main_from_file.cc src/fw-online-planar-rectification.cc src/Utils.cpp)
-#add_dependencies(${PROJECT_NAME}_file ${${PROJECT_NAME}_EXPORTED_TARGETS}})
-#target_link_libraries(${PROJECT_NAME}_file ${catkin_LIBRARIES})
 
 #############
 # QTCREATOR #

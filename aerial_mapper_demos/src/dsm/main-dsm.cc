@@ -5,9 +5,8 @@
  *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-
 // NON-SYSTEM
-#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
+#include <aerial-mapper-dense-pcl/stereo.h>
 #include <aerial-mapper-dsm/dsm.h>
 #include <aerial-mapper-grid-map/aerial-mapper-grid-map.h>
 #include <aerial-mapper-io/aerial-mapper-io.h>
@@ -17,19 +16,34 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 
-DEFINE_string(data_directory, "", "");
-DEFINE_string(filename_camera_rig, "", "");
-DEFINE_string(filename_poses, "", "");
-DEFINE_string(prefix_images, "", "");
-DEFINE_string(filename_point_cloud, "", "");
-DEFINE_int32(dense_pcl_use_every_nth_image, 10, "");
-DEFINE_double(center_easting, 0.0, "");
-DEFINE_double(center_northing, 0.0, "");
-DEFINE_double(delta_easting, 0.0, "");
-DEFINE_double(delta_northing, 0.0, "");
-DEFINE_double(resolution, 1.0, "");
+DEFINE_string(data_directory, "",
+              "Directory to poses, images, and calibration file.");
+DEFINE_string(
+    filename_camera_rig, "",
+    "Name of the camera calibration file (intrinsics). File ending: .yaml");
+DEFINE_string(filename_poses, "",
+              "Name of the file that contains positions and orientations for "
+              "every camera in the global/world frame, i.e. T_G_B");
+DEFINE_string(prefix_images, "",
+              "Prefix of the images to be loaded, e.g. 'images_'");
+DEFINE_string(filename_point_cloud, "",
+              "Name of the file that contains the point cloud. If string is "
+              "empty, the point cloud is generated from the provided images, "
+              "camera poses, camera intrinsics");
+DEFINE_int32(dense_pcl_use_every_nth_image, 10,
+             "Only use every n-th image in the densification process.");
+DEFINE_double(center_easting, 0.0, "Center [m] of the grid_map (easting).");
+DEFINE_double(center_northing, 0.0, "Center [m] of the grid_map (northing).");
+DEFINE_double(delta_easting, 0.0,
+              "Width [m] of the grid_map, starting from center.");
+DEFINE_double(delta_northing, 0.0,
+              "Height [m] of the grid_map, starting from center");
+DEFINE_double(resolution, 1.0, "Resolution of the grid_map [m].");
+DEFINE_bool(use_BM, true,
+            "Use BM Blockmatching if true. Use SGBM (=Semi-Global-) "
+            "Blockmatching if false.");
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
@@ -66,12 +80,15 @@ int main(int argc, char **argv) {
     io_handler.loadPointCloudFromFile(FLAGS_filename_point_cloud, &point_cloud);
   } else {
     // .. or generate via dense reconstruction from poses and images.
-    dense_pcl::Settings settings_dense_pcl;
+    stereo::Settings settings_dense_pcl;
     settings_dense_pcl.use_every_nth_image =
         FLAGS_dense_pcl_use_every_nth_image;
-    dense_pcl::PlanarRectification dense_reconstruction(ncameras,
-                                                        settings_dense_pcl);
-    dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud);
+    LOG(INFO) << "Perform dense reconstruction using planar rectification.";
+    stereo::BlockMatchingParameters block_matching_params;
+    block_matching_params.use_BM = FLAGS_use_BM;
+    stereo::Stereo stereo(ncameras, settings_dense_pcl, block_matching_params);
+    AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
+    stereo.addFrames(T_G_Bs, images, &point_cloud);
   }
 
   LOG(INFO) << "Initialize layered map.";

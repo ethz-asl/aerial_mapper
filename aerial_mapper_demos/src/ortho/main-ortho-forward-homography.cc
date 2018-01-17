@@ -13,17 +13,31 @@
 #include <aerial-mapper-ortho/ortho-forward-homography.h>
 #include <gflags/gflags.h>
 
-DEFINE_string(forward_homography_data_directory, "", "");
-DEFINE_string(forward_homography_filename_poses, "", "");
-DEFINE_string(forward_homography_prefix_images, "", "");
-DEFINE_string(forward_homography_filename_camera_rig, "", "");
-DEFINE_double(forward_homography_origin_easting_m, 0.0, "");
-DEFINE_double(forward_homography_origin_northing_m, 0.0, "");
-DEFINE_double(forward_homography_origin_elevation_m, 0.0, "");
-DEFINE_double(forward_homography_ground_plane_elevation_m, 414.0, "");
-DEFINE_int32(forward_homography_width_mosaic_pixels, 1000, "");
-DEFINE_int32(forward_homography_height_mosaic_pixels, 1000, "");
-DEFINE_bool(forward_homography_batch, true, "");
+DEFINE_string(forward_homography_data_directory, "",
+              "Directory to poses, images, and calibration file.");
+DEFINE_string(forward_homography_filename_poses, "",
+              "Name of the file that contains positions and orientations for "
+              "every camera in the global/world frame, i.e. T_G_B");
+DEFINE_string(forward_homography_prefix_images, "",
+              "Prefix of the images to be loaded, e.g. 'images_'");
+DEFINE_string(
+    forward_homography_filename_camera_rig, "",
+    "Name of the camera calibration file (intrinsics). File ending: .yaml");
+DEFINE_double(forward_homography_origin_easting_m, 0.0,
+              "Origin [m] of the homography-based orthomosaic (easting).");
+DEFINE_double(forward_homography_origin_northing_m, 0.0,
+              "Origin [m] of the homography-based orthomosaic (northing).");
+DEFINE_double(forward_homography_origin_elevation_m, 0.0,
+              "Origin [m] of the homography-based orthomosaic (elevation).");
+DEFINE_double(
+    forward_homography_ground_plane_elevation_m, 414.0,
+    "Elevation [m] of the orthomosaic (flat/ground plane assumption).");
+DEFINE_int32(forward_homography_width_mosaic_pixels, 1000,
+             "Width of orthomosaic in pixels.");
+DEFINE_int32(forward_homography_height_mosaic_pixels, 1000,
+             "Heigh of the orthomosaic in pixels");
+DEFINE_bool(forward_homography_batch, true,
+            "Use batch? Otherwise process images incrementally.");
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);

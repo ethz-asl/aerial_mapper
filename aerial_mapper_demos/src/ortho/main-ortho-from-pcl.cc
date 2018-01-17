@@ -6,7 +6,7 @@
  */
 
 // NON-SYSTEM
-#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
+#include <aerial-mapper-dense-pcl/stereo.h>
 #include <aerial-mapper-grid-map/aerial-mapper-grid-map.h>
 #include <aerial-mapper-io/aerial-mapper-io.h>
 #include <aerial-mapper-ortho/ortho-from-pcl.h>
@@ -16,23 +16,46 @@
 #include <glog/logging.h>
 #include <ros/ros.h>
 
-DEFINE_bool(ortho_from_pcl_show_orthomosaic_opencv, true, "");
-DEFINE_bool(ortho_from_pcl_use_adaptive_interpolation, false, "");
-DEFINE_int32(ortho_from_pcl_interpolation_radius, 10, "");
-DEFINE_double(ortho_from_pcl_center_easting, 0.0, "");
-DEFINE_double(ortho_from_pcl_center_northing, 0.0, "");
-DEFINE_double(ortho_from_pcl_delta_easting, 100.0, "");
-DEFINE_double(ortho_from_pcl_delta_northing, 100.0, "");
-DEFINE_double(ortho_from_pcl_resolution, 1.0, "");
-DEFINE_string(data_directory, "", "");
-DEFINE_string(ortho_from_pcl_orthomosaic_jpg_filename, "", "");
-DEFINE_string(ortho_from_pcl_point_cloud_filename, "", "");
-DEFINE_string(filename_poses, "", "");
-DEFINE_string(prefix_images, "", "");
-DEFINE_string(filename_camera_rig, "", "");
-DEFINE_bool(load_point_cloud_from_file, false, "");
-DEFINE_string(filename_point_cloud, "", "");
-DEFINE_int32(dense_pcl_use_every_nth_image, 10, "");
+DEFINE_bool(ortho_from_pcl_show_orthomosaic_opencv, true,
+            "Show the orthomosaic using opencv?");
+DEFINE_bool(ortho_from_pcl_use_adaptive_interpolation, false,
+            "Use adaptive interpolation in the orthomosaic generation? Used to "
+            "handle missing data.");
+DEFINE_int32(ortho_from_pcl_interpolation_radius, 10,
+             "Interpolation radius [m].");
+DEFINE_double(ortho_from_pcl_center_easting, 0.0,
+              "Center [m] of the grid_map (easting).");
+DEFINE_double(ortho_from_pcl_center_northing, 0.0,
+              "Center [m] of the grid_map (northing).");
+DEFINE_double(ortho_from_pcl_delta_easting, 100.0,
+              "Width [m] of the grid_map, starting from center.");
+DEFINE_double(ortho_from_pcl_delta_northing, 100.0,
+              "Height [m] of the grid_map, starting from center");
+DEFINE_double(ortho_from_pcl_resolution, 1.0,
+              "Resolution of the grid_map [m].");
+DEFINE_string(data_directory, "",
+              "Directory to poses, images, and calibration file.");
+DEFINE_string(ortho_from_pcl_orthomosaic_jpg_filename, "",
+              "Name of the output image storing the orthomsaic.");
+DEFINE_string(filename_poses, "",
+              "Name of the file that contains positions and orientations for "
+              "every camera in the global/world frame, i.e. T_G_B");
+DEFINE_string(prefix_images, "",
+              "Prefix of the images to be loaded, e.g. 'images_'");
+DEFINE_string(
+    filename_camera_rig, "",
+    "Name of the camera calibration file (intrinsics). File ending: .yaml");
+DEFINE_bool(load_point_cloud_from_file, false,
+            "Load point cloud from file? Otherwise generate the point cloud "
+            "from the provided images, camera poses, camera intrinsicspoint "
+            "cloud from images.");
+DEFINE_string(filename_point_cloud, "",
+              "Name of the file that contains the point cloud.");
+DEFINE_int32(dense_pcl_use_every_nth_image, 10,
+             "Only use every n-th image in the densification process.");
+DEFINE_bool(use_BM, true,
+            "Use BM Blockmatching if true. Use SGBM (=Semi-Global-) "
+            "Blockmatching if false.");
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -76,13 +99,15 @@ int main(int argc, char** argv) {
                                       &point_cloud_intensities);
   } else {
     // .. or generate via dense reconstruction from poses and images.
-    dense_pcl::Settings settings_dense_pcl;
+    stereo::Settings settings_dense_pcl;
     settings_dense_pcl.use_every_nth_image =
         FLAGS_dense_pcl_use_every_nth_image;
-    dense_pcl::PlanarRectification dense_reconstruction(ncameras,
-                                                        settings_dense_pcl);
-    dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud,
-                                   &point_cloud_intensities);
+    LOG(INFO) << "Perform dense reconstruction using planar rectification.";
+    stereo::BlockMatchingParameters block_matching_params;
+    block_matching_params.use_BM = FLAGS_use_BM;
+    stereo::Stereo stereo(ncameras, settings_dense_pcl, block_matching_params);
+    AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
+    stereo.addFrames(T_G_Bs, images, &point_cloud, &point_cloud_intensities);
   }
 
   LOG(INFO) << "Initialize layered map.";

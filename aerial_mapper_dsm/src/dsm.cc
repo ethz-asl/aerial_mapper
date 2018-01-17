@@ -19,6 +19,7 @@ namespace dsm {
 
 Dsm::Dsm(const Settings& settings, grid_map::GridMap* map)
     : settings_(settings) {
+  CHECK(map);
   printParams();
   if (settings_.use_multi_threads) {
     // Create one sample for every cell.
