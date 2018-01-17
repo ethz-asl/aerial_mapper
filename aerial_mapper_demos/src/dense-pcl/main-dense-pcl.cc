@@ -9,8 +9,6 @@
 #include <string>
 
 // NON-SYSTEM
-
-#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
 #include <aerial-mapper-dense-pcl/stereo.h>
 #include <aerial-mapper-io/aerial-mapper-io.h>
 #include <gflags/gflags.h>
@@ -32,9 +30,6 @@ DEFINE_string(prefix_images, "",
               "Prefix of the images to be loaded, e.g. 'images_'");
 DEFINE_int32(dense_pcl_use_every_nth_image, 10,
              "Only use every n-th image in the densification process");
-DEFINE_bool(use_mdr, true,
-            "Use the mono-dense reconstruction pipeline. If false: use the "
-            "stereo densification");
 DEFINE_bool(use_BM, true,
             "Use BM Blockmatching if true. Use SGBM (=Semi-Global-) "
             "Blockmatching if false.");
@@ -69,25 +64,14 @@ int main(int argc, char** argv) {
   Images images;
   io_handler.loadImagesFromFile(filename_images, num_poses, &images);
 
-  if (!FLAGS_use_mdr) {
-    stereo::Settings settings_dense_pcl;
-    settings_dense_pcl.use_every_nth_image =
-        FLAGS_dense_pcl_use_every_nth_image;
-    LOG(INFO) << "Perform dense reconstruction using planar rectification.";
-    stereo::BlockMatchingParameters block_matching_params;
-    block_matching_params.use_BM = FLAGS_use_BM;
-    stereo::Stereo stereo(ncameras, settings_dense_pcl, block_matching_params);
-    AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
-    stereo.addFrames(T_G_Bs, images, &point_cloud);
-  } else {
-    dense_pcl::Settings settings_dense_pcl;
-    settings_dense_pcl.use_every_nth_image =
-        FLAGS_dense_pcl_use_every_nth_image;
-    dense_pcl::PlanarRectification dense_reconstruction(ncameras,
-                                                        settings_dense_pcl);
-    AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
-    dense_reconstruction.addFrames(T_G_Bs, images, &point_cloud);
-  }
+  stereo::Settings settings_dense_pcl;
+  settings_dense_pcl.use_every_nth_image = FLAGS_dense_pcl_use_every_nth_image;
+  LOG(INFO) << "Perform dense reconstruction using planar rectification.";
+  stereo::BlockMatchingParameters block_matching_params;
+  block_matching_params.use_BM = FLAGS_use_BM;
+  stereo::Stereo stereo(ncameras, settings_dense_pcl, block_matching_params);
+  AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
+  stereo.addFrames(T_G_Bs, images, &point_cloud);
 
   return 0;
 }

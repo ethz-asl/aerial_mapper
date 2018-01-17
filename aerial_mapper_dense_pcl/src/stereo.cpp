@@ -6,7 +6,6 @@
  */
 
 #include "aerial-mapper-dense-pcl/stereo.h"
-#include "aerial-mapper-dense-pcl/Utils.h"
 
 namespace stereo {
 

@@ -9,7 +9,7 @@
 #include <memory>
 
 // NON-SYSTEM
-#include <aerial-mapper-dense-pcl/dense-pcl-planar-rectification.h>
+#include <aerial-mapper-dense-pcl/stereo.h>
 #include <aerial-mapper-dsm/dsm.h>
 #include <aerial-mapper-grid-map/aerial-mapper-grid-map.h>
 #include <aerial-mapper-io/aerial-mapper-io.h>
@@ -38,6 +38,9 @@ DEFINE_string(point_cloud_filename, "", "");
 DEFINE_int32(dense_pcl_use_every_nth_image, 1, "");
 DEFINE_bool(backward_grid_colored_ortho, false, "");
 DEFINE_bool(backward_grid_use_multi_threads, false, "");
+DEFINE_bool(use_BM, true,
+            "Use BM Blockmatching if true. Use SGBM (=Semi-Global-) "
+            "Blockmatching if false.");
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -84,9 +87,12 @@ int main(int argc, char** argv) {
   grid_map::AerialGridMap map(settings_aerial_grid_map);
 
   // Set up dense reconstruction.
-  dense_pcl::Settings settings_dense_pcl;
-  dense_pcl::PlanarRectification dense_reconstruction(ncameras,
-                                                      settings_dense_pcl);
+  stereo::Settings settings_dense_pcl;
+  settings_dense_pcl.use_every_nth_image = FLAGS_dense_pcl_use_every_nth_image;
+  LOG(INFO) << "Perform dense reconstruction using planar rectification.";
+  stereo::BlockMatchingParameters block_matching_params;
+  block_matching_params.use_BM = FLAGS_use_BM;
+  stereo::Stereo stereo(ncameras, settings_dense_pcl, block_matching_params);
 
   // Set up digital surface map.
   dsm::Settings settings_dsm;
@@ -121,7 +127,7 @@ int main(int argc, char** argv) {
     if (++skip % FLAGS_dense_pcl_use_every_nth_image == 0) {
       LOG(INFO) << "Processing image " << i << " of " << images.size();
       AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
-      dense_reconstruction.addFrame(T_G_Bs[i], images[i], &point_cloud);
+      stereo.addFrame(T_G_Bs[i], images[i], &point_cloud);
 
       if (pcl_cnt > 0) {
         LOG(INFO) << "Filling DSM with " << point_cloud.size() << " points";
