@@ -45,12 +45,6 @@ class BlockMatchingBM : public BlockMatchingBase {
  private:
   cv::Ptr<cv::StereoBM> bm_;
   BlockMatchingParameters::BM bm_parameters_;
-
-  void visualizeDisparityCv(const cv::Mat& src, double scale = 1.0);
-   void visualizeDisparity(const cv::Mat& src, const cv::Mat& image_left,
-                           const cv::Mat& image_right);
-   void applyCustomColorMap(const cv::Mat& im, cv::Mat& im_colored);
-
   static constexpr int kMaxInvalidDisparity = 1;
   size_t image_counter_;
 };
