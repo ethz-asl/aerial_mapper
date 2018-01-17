@@ -56,6 +56,10 @@ DEFINE_int32(dense_pcl_use_every_nth_image, 10,
 DEFINE_bool(use_BM, true,
             "Use BM Blockmatching if true. Use SGBM (=Semi-Global-) "
             "Blockmatching if false.");
+DEFINE_bool(load_point_cloud_from_file, false,
+            "Load point cloud from file? Otherwise generate the point cloud "
+            "from the provided images, camera poses, camera intrinsicspoint "
+            "cloud from images.");
 
 void parseSettingsOrtho(ortho::Settings* settings_ortho);
 

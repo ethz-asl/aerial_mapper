@@ -5,5 +5,4 @@
 --filename_poses=opt_poses.txt
 --prefix_images=image_
 --dense_pcl_use_every_nth_image=7
---use_mdr=false
 --use_BM=true

@@ -46,9 +46,9 @@ DEFINE_string(
     filename_camera_rig, "",
     "Name of the camera calibration file (intrinsics). File ending: .yaml");
 DEFINE_bool(load_point_cloud_from_file, false,
-            "Load point cloud from file? Otherweise generate the point cloud "
-            "from the provided images, "
-            "camera poses, camera intrinsicspoint cloud from images.");
+            "Load point cloud from file? Otherwise generate the point cloud "
+            "from the provided images, camera poses, camera intrinsicspoint "
+            "cloud from images.");
 DEFINE_string(filename_point_cloud, "",
               "Name of the file that contains the point cloud.");
 DEFINE_int32(dense_pcl_use_every_nth_image, 10,

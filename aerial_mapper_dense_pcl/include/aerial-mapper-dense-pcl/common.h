@@ -83,16 +83,16 @@ struct BlockMatchingParameters {
   bool use_BM = false;
 
   struct SGBM {
-    int min_disparity = 1;  // 36;
-    int num_disparities = 80;  // 128;
-    int pre_filter_cap = 35;  // 1;
-    int uniqueness_ratio = 10;  // 64;
-    int speckle_window_size = 100;  // 0;
-    int speckle_range = 20;  // 0;
+    int min_disparity = 1;
+    int num_disparities = 80;
+    int pre_filter_cap = 35;
+    int uniqueness_ratio = 10;
+    int speckle_window_size = 100;
+    int speckle_range = 20;
     int disp_12_max_diff = 0;
-    int p1 = 120;  // 350;
-    int p2 = 250;  // 870;
-    int block_size = 9;  // 5;
+    int p1 = 120;
+    int p2 = 250;
+    int block_size = 9;
   } sgbm;
 
   struct BM {
