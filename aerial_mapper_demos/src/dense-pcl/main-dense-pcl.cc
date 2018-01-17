@@ -17,15 +17,13 @@
 #include <ros/ros.h>
 
 DEFINE_string(data_directory, "",
-              "Directory to poses, images, and "
-              "calibration file.");
-DEFINE_string(filename_camera_rig, "",
-              "Name of the camera calibration file."
-              "File ending: .yaml");
+              "Directory to poses, images, and calibration file.");
 DEFINE_string(
-    filename_poses, "",
-    "Name of the file that contains positions "
-    "and orientations for every camera in the global/world frame, i.e. T_G_B");
+    filename_camera_rig, "",
+    "Name of the camera calibration file. (intrinsics). File ending: .yaml");
+DEFINE_string(filename_poses, "",
+              "Name of the file that contains positions and orientations for "
+              "every camera in the global/world frame, i.e. T_G_B");
 DEFINE_string(prefix_images, "",
               "Prefix of the images to be loaded, e.g. 'images_'");
 DEFINE_int32(dense_pcl_use_every_nth_image, 10,

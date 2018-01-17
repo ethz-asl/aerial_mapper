@@ -14,11 +14,15 @@
 #include <gflags/gflags.h>
 #include <ros/ros.h>
 
-DEFINE_string(util_data_directory, "", "");
-DEFINE_string(util_filename_poses, "", "");
-DEFINE_string(util_prefix_images, "", "");
+DEFINE_string(util_data_directory, "",
+              "Directory to poses, images, and calibration file.");
+DEFINE_string(util_filename_poses, "",
+              "Name of the file that contains positions and orientations for "
+              "every camera in the global/world frame, i.e. T_G_B");
+DEFINE_string(util_prefix_images, "",
+              "Prefix of the images to be loaded, e.g. 'images_'");
 
-int main(int  argc, char** argv) {
+int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InstallFailureSignalHandler();
