@@ -22,8 +22,10 @@
   <depend>glog_catkin</depend>
   <depend>image_transport</depend>
   <depend>minkindr_conversions</depend>
+<!--
   <depend>mono_dense_reconstruction</depend>
   <depend>mono_dense_reconstruction_nodes</depend>
+-->
   <depend>opencv3_catkin</depend>
   <depend>rosbag</depend>
   <depend>roscpp</depend>
