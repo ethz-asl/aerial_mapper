@@ -1,0 +1,32 @@
+deflogin on
+autodetach on
+
+
+escape ^oo
+
+
+caption always
+
+screen 0
+title "Build from scratch; then launch 0-synthetic-cadastre-dense-pcl.launch"
+stuff "cd /tmp/ \015"
+stuff "mkdir -p test_catkin_ws_aerial_mapper/src \015"
+stuff "cd test_catkin_ws_aerial_mapper \015"
+stuff "catkin init \015"
+stuff "catkin config --merge-devel # Necessary for catkin_tools >= 0.4. \015"
+stuff "catkin config --extend /opt/ros/indigo # Replace indigo by your ROS version \015"
+stuff "catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release # Release/Debug \015"
+stuff "cd src \015"
+stuff "wstool init \015"
+stuff "git clone git@github.com:ethz-asl/aerial_mapper.git \015"
+stuff "wstool merge aerial_mapper/install/dependencies.rosinstall \015"
+stuff "wstool update -j8 \015"
+stuff "sed -i 's/WITH_QT=OFF/WITH_QT=ON/g' opencv3_catkin/CMakeLists.txt \015"
+stuff "catkin build aerial_mapper \015"
+stuff "source ../devel/setup.bash \015"
+stuff "mkdir /tmp/simulation && cd /tmp/simulation \015"
+stuff "wget http://timohinzmann.com/datasets/fsr/cadastre_gray.tar.gz \015"
+stuff "tar -xvzf cadastre_gray.tar.gz \015"
+stuff "roslaunch aerial_mapper_demos 0-synthetic-cadastre-dense-pcl.launch \015"
+
+select 0

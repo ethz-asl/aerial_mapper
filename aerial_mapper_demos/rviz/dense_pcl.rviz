@@ -9,8 +9,6 @@ Panels:
         - /Grid1
         - /Grid1/Offset1
         - /PointCloud21
-        - /Pose1
-        - /Pose2
       Splitter Ratio: 0.570231
     Tree Height: 893
   - Class: rviz/Selection
@@ -31,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: PointCloud2
 Visualization Manager:
   Class: ""
   Displays:
@@ -77,41 +75,11 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.5
-      Style: Spheres
+      Style: Points
       Topic: /planar_rectification/point_cloud
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Axes Length: 5
-      Axes Radius: 0.5
-      Class: rviz/Pose
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.3
-      Head Radius: 0.1
-      Name: Pose
-      Shaft Length: 1
-      Shaft Radius: 0.05
-      Shape: Axes
-      Topic: /fw_mapper/T_G_C
-      Unreliable: false
-      Value: true
-    - Alpha: 1
-      Axes Length: 4
-      Axes Radius: 0.2
-      Class: rviz/Pose
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.3
-      Head Radius: 0.1
-      Name: Pose
-      Shaft Length: 1
-      Shaft Radius: 0.05
-      Shape: Axes
-      Topic: /fw_mapper/T_G_B
-      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
@@ -170,5 +138,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 927
-  X: 984
-  Y: 134
+  X: 974
+  Y: 14
