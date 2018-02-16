@@ -173,11 +173,13 @@ void Stereo::processStereoFrame(
                                    point_cloud_ros_msg_.height);
   ros::Time timestamp = ros::Time::now();
   point_cloud_ros_msg_.header.stamp = timestamp;
-  point_cloud = &densified_stereo_pair.point_cloud_eigen;
-  point_cloud_intensities = &densified_stereo_pair.point_cloud_intensities;
   densifier_->computePointCloud(stereo_rig_params_, rectified_stereo_pair,
                                 &densified_stereo_pair, point_cloud_ros_msg_);
-
+  *point_cloud = densified_stereo_pair.point_cloud_eigen;
+  if (point_cloud_intensities) {
+    *point_cloud_intensities = densified_stereo_pair.point_cloud_intensities;
+  }
+  
   // 5. Publish the point cloud.
   pub_point_cloud_.publish(point_cloud_ros_msg_);
   ros::spinOnce();
