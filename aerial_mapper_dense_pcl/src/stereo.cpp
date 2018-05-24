@@ -79,9 +79,10 @@ Stereo::Stereo(const std::shared_ptr<aslam::NCamera> ncameras,
       "/planar_rectification/point_cloud", 100);
 }
 
-void Stereo::addFrames(const Poses& T_G_Bs, const Images& images,
-                       AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
-                       std::vector<int>* point_cloud_intensities) {
+void Stereo::addFrames(
+    const Poses& T_G_Bs, const Images& images,
+    AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
+    std::vector<int>* point_cloud_intensities) {
   CHECK(point_cloud);
   point_cloud->clear();
   if (point_cloud_intensities) {
@@ -110,9 +111,10 @@ void Stereo::addFrames(const Poses& T_G_Bs, const Images& images,
   }
 }
 
-void Stereo::addFrame(const Pose& T_G_B, const Image& image_raw,
-                      AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
-                      std::vector<int>* point_cloud_intensities) {
+void Stereo::addFrame(
+    const Pose& T_G_B, const Image& image_raw,
+    AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud,
+    std::vector<int>* point_cloud_intensities) {
   CHECK(point_cloud);
   // SGBM/BM blockmatching requires images of type CV_8UC1.
   cv::Mat image;
@@ -178,6 +180,9 @@ void Stereo::processStereoFrame(
   densifier_->computePointCloud(stereo_rig_params_, rectified_stereo_pair,
                                 &densified_stereo_pair, point_cloud_ros_msg_);
 
+  std::cout << "xyz=" << densified_stereo_pair.point_cloud_eigen[0].transpose()
+            << std::endl;
+
   // 5. Publish the point cloud.
   pub_point_cloud_.publish(point_cloud_ros_msg_);
   ros::spinOnce();
@@ -188,6 +193,7 @@ void Stereo::processStereoFrame(
                            rectified_stereo_pair.image_left,
                            rectified_stereo_pair.image_right);
   }
+  cv::waitKey(0);
 }
 
 void Stereo::undistortRawImages(const cv::Mat& image_distorted_1,
@@ -215,9 +221,9 @@ void Stereo::visualizeRectification(
              cv::Scalar(255, 255, 255));
   }
   cv::vconcat(images_undistorted, images_undistorted_rectified, all_images);
-  cv::imshow("top: undistorted, bottom: undistorted + rectified",
-             all_images);
-  cv::waitKey(1);
+  cv::imshow("top: undistorted, bottom: undistorted + rectified", all_images);
+  cv::imwrite("/tmp/debug.jpg", all_images);
+  cv::waitKey(0);
 }
 
 }  // namespace stereo

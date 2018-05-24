@@ -28,6 +28,8 @@
 #include <minkindr_conversions/kindr_msg.h>
 #include <minkindr_conversions/kindr_tf.h>
 
+#include <aerial-mapper-thirdparty/gps-conversions.h>
+
 namespace io {
 
 AerialMapperIO::AerialMapperIO() {}
@@ -53,6 +55,62 @@ void AerialMapperIO::loadPosesFromFile(const PoseFormat& format,
 //      loadPosesFromFileRos(filename, T_G_Bs);
 //    break;
   }
+}
+
+void AerialMapperIO::loadPix4dPosesFromFile(const std::string& filename_poses,
+                                        Poses* poses,
+                                        std::vector<std::string>* image_names) {
+  VLOG(3000) << "Loading poses from file: " << filename_poses;
+  std::ifstream infile(filename_poses);
+  std::string header;
+  std::getline(infile, header);
+  VLOG(3000) << "Header: " << header;
+
+  size_t num_images = 10000;
+  poses->clear();
+  image_names->clear();
+  if (infile) {
+    std::string image_string;
+    double latitude, longitude, altitude, omega, phi, kappa;
+    while (infile >> image_string >> longitude >> latitude >> altitude >>
+           omega >> phi >> kappa) {
+      double cw = cos(omega * M_PI / 180.0);
+      double cp = cos(phi * M_PI / 180.0);
+      double ck = cos(kappa * M_PI / 180.0);
+      double sw = sin(omega * M_PI / 180.0);
+      double sp = sin(phi * M_PI / 180.0);
+      double sk = sin(kappa * M_PI / 180.0);
+
+      Eigen::Matrix3d R_match_conventions, R;
+      R_match_conventions(0, 0) = 1.0;
+      R_match_conventions(1, 1) = -1.0;
+      R_match_conventions(2, 2) = -1.0;
+
+      R << cp* ck, cw* sk + sw* sp* ck, sw* sk - cw* sp* ck, -cp* sk,
+          cw* ck - sw* sp* sk, sw* ck + cw* sp* sk, sp, -sw* cp, cw* cp;
+
+      double northing, easting;
+      char utm_zone[10];
+      UTM::LLtoUTM(latitude, longitude, northing, easting, utm_zone);
+      const Eigen::Vector3d t(easting, northing, altitude);
+
+      Eigen::Matrix4d T_;
+      T_.block<3, 3>(0, 0) = (R_match_conventions * R).transpose();
+      T_.block<3, 1>(0, 3) = t;
+      aslam::Transformation T(T_);
+      poses->push_back(T);
+
+      VLOG(10000) << "----------------------";
+      VLOG(10000) << image_string;
+      VLOG(10000) << std::endl << T.getTransformationMatrix();
+      image_names->push_back(image_string);
+      if (image_names->size() > num_images) {
+        break;
+      }
+    }
+  }
+  CHECK(poses->size() == image_names->size());
+  VLOG(3000) << "Number of poses: " << poses->size();
 }
 
 void AerialMapperIO::loadPosesFromFileRos(
@@ -233,7 +291,8 @@ void AerialMapperIO::loadImagesFromFile(
   LOG(INFO) << "Loading images from directory: " << directory;
   for (const std::string image_name : image_names) {
     const std::string& filename =
-        directory + image_name + ".png";
+        directory + image_name;
+    VLOG(200) << "Loading image: " << filename;
     cv::Mat image;
     if (!load_colored_images) {
       image = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);

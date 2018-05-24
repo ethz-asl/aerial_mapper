@@ -1,0 +1,3 @@
+[submodule "aerial_mapper_optimization"]
+	path = aerial_mapper_optimization
+	url = git@github.com:hitimo/aerial_mapper_optimization.git

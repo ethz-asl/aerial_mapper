@@ -71,9 +71,9 @@ void Densifier::computePointCloud(
         // Point defined in world/global frame.
         const Eigen::Vector3d point_G(rectified_stereo_pair.R_G_C * point_r1 +
                                       stereo_pair.t_G_C1);
-        const float x = point_G(0);
-        const float y = point_G(1);
-        const float z = point_G(2);
+        const float x = point_G(0)-468844.0;
+        const float y = point_G(1)-5.24839e+06;
+        const float z = point_G(2)-400;
         if (!std::isinf(z)) {
           // Copy 3D point to ros message.
           memcpy(&(point_cloud_ros.data[kPositionX + point_offset]), &x,

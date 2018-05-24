@@ -43,6 +43,8 @@ class AerialMapperIO {
 
   void loadPosesFromFileRos(const std::string& filename, Poses* T_G_Bs,
                             std::vector<int64_t>* timestamps_ns);
+  void loadPix4dPosesFromFile(const std::string& filename_poses, Poses* poses,
+                              std::vector<std::string>* image_names);
 
   void loadPointCloudFromFile(
       const std::string& filename_point_cloud,

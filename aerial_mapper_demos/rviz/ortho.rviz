@@ -8,10 +8,10 @@ Panels:
         - /Status1
         - /Grid1
         - /Grid1/Offset1
-        - /PointCloud21
         - /Pose1
         - /Pose2
         - /GridMap1
+        - /PointCloud21
       Splitter Ratio: 0.570231
     Tree Height: 921
   - Class: rviz/Selection
@@ -32,7 +32,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: PointCloud2
 Visualization Manager:
   Class: ""
   Displays:
@@ -54,36 +54,6 @@ Visualization Manager:
       Plane Cell Count: 30
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 4096
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.5
-      Style: Spheres
-      Topic: /planar_rectification/point_cloud
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
     - Alpha: 1
       Axes Length: 5
       Axes Radius: 0.5
@@ -135,6 +105,36 @@ Visualization Manager:
       Unreliable: false
       Use Rainbow: false
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.122
+      Style: Points
+      Topic: /planar_rectification/point_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -159,22 +159,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 243.54
+      Distance: 112.483
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 21.0459
-        Y: 30.0953
-        Z: 10.1578
+        X: 9.45502
+        Y: -11.2171
+        Z: -5.73617
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.339799
+      Pitch: 1.1848
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.1133
+      Yaw: 3.47195
     Saved: ~
 Window Geometry:
   Displays:
@@ -193,4 +193,4 @@ Window Geometry:
     collapsed: true
   Width: 1873
   X: 47
-  Y: 144
+  Y: 1104

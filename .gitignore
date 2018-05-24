@@ -44,3 +44,4 @@ CATKIN_IGNORE
 
 # Qt Creator
 *.user
+*user*
