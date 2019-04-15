@@ -106,7 +106,6 @@ int main(int argc, char** argv) {
     stereo::BlockMatchingParameters block_matching_params;
     block_matching_params.use_BM = FLAGS_use_BM;
     stereo::Stereo stereo(ncameras, settings_dense_pcl, block_matching_params);
-    AlignedType<std::vector, Eigen::Vector3d>::type point_cloud;
     stereo.addFrames(T_G_Bs, images, &point_cloud, &point_cloud_intensities);
   }
 
