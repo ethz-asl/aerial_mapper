@@ -19,7 +19,7 @@ stuff "catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release # Release/Debug \01
 stuff "cd src \015"
 stuff "wstool init \015"
 stuff "git clone git@github.com:ethz-asl/aerial_mapper.git \015"
-stuff "wstool merge aerial_mapper/install/dependencies.rosinstall \015"
+stuff "wstool merge aerial_mapper/install/dependencies_ssh.rosinstall \015"
 stuff "wstool update -j8 \015"
 stuff "sed -i 's/WITH_QT=OFF/WITH_QT=ON/g' opencv3_catkin/CMakeLists.txt \015"
 stuff "catkin build aerial_mapper \015"
