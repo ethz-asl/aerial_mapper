@@ -1,0 +1,15 @@
+- git: {local-name: aslam_cv2, uri: 'https://github.com/ethz-asl/aslam_cv2.git'}
+- git: {local-name: catkin_simple, uri: 'https://github.com/catkin/catkin_simple.git'}
+- git: {local-name: doxygen_catkin, uri: 'https://github.com/ethz-asl/doxygen_catkin.git'}
+- git: {local-name: eigen_catkin, uri: 'https://github.com/ethz-asl/eigen_catkin.git'}
+- git: {local-name: eigen_checks, uri: 'https://github.com/ethz-asl/eigen_checks.git'}
+- git: {local-name: ethzasl_brisk, uri: 'https://github.com/ethz-asl/ethzasl_brisk.git'}
+- git: {local-name: gflags_catkin, uri: 'https://github.com/ethz-asl/gflags_catkin.git'}
+- git: {local-name: glog_catkin, uri: 'https://github.com/ethz-asl/glog_catkin.git'}
+- git: {local-name: grid_map, uri: 'https://github.com/ethz-asl/grid_map.git'}
+- git: {local-name: minkindr_ros, uri: 'https://github.com/ethz-asl/minkindr_ros.git'}
+- git: {local-name: minkindr, uri: 'https://github.com/ethz-asl/minkindr.git'}
+- git: {local-name: opencv3_catkin, uri: 'https://github.com/ethz-asl/opencv3_catkin.git'}
+- git: {local-name: pcl_catkin, uri: 'https://github.com/ethz-asl/pcl_catkin.git'}
+- git: {local-name: vision_opencv, uri: 'https://github.com/ethz-asl/vision_opencv.git'}
+- git: {local-name: yaml_cpp_catkin, uri: 'https://github.com/ethz-asl/yaml_cpp_catkin.git'}
