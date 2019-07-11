@@ -27,6 +27,5 @@
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
-  <depend>pcl_catkin</depend>
 
 </package>

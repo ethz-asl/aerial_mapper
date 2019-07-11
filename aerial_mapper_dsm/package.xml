@@ -24,7 +24,6 @@
   <depend>image_transport</depend>
   <depend>minkindr_conversions</depend>
   <depend>opencv3_catkin</depend>
-  <depend>pcl_catkin</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
 
