@@ -15,7 +15,7 @@
 #include <aerial-mapper-utils/utils-nearest-neighbor.h>
 
 typedef kindr::minimal::QuatTransformation Pose;
-typedef std::vector<Pose> Poses;
+typedef Aligned<std::vector, Pose> Poses;
 typedef cv::Mat Image;
 typedef std::vector<Image> Images;
 
@@ -54,13 +54,6 @@ class AerialMapperIO {
       AlignedType<std::vector, Eigen::Vector3d>::type* point_cloud_xyz);
 
   void subtractOriginFromPoses(const Eigen::Vector3d& origin, Poses* T_G_Bs);
-
-  void writeDataToDEMGeoTiffColor(const cv::Mat& ortho_image,
-                                  const Eigen::Vector2d& xy,
-                                  const std::string& geotiff_filename);
-
-  void toGeoTiff(const cv::Mat& orthomosaic, const Eigen::Vector2d& xy,
-                 const std::string& geotiff_filename);
 
   void toStandardFormat(const std::string& directory,
                         const std::string& filename_vi_imu_poses,
