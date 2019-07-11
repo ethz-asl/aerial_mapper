@@ -9,14 +9,14 @@
 #include "aerial-mapper-ortho/ortho-backward-grid.h"
 
 // SYSTEM
+#include <math.h>
 #include <fstream>
 #include <iostream>
-#include <math.h>
 
 // NON-SYSTEM
 #include <aerial-mapper-utils/utils-common.h>
-#include <aslam/pipeline/undistorter.h>
 #include <aslam/pipeline/undistorter-mapped.h>
+#include <aslam/pipeline/undistorter.h>
 
 namespace ortho {
 
@@ -43,7 +43,10 @@ void OrthoBackwardGrid::updateOrthomosaicLayer(const Poses& T_G_Cs,
                                                const Images& images,
                                                grid_map::GridMap* map) const {
   CHECK(ncameras_);
-  const aslam::Camera& camera = ncameras_->getCamera(kFrameIdx);
+  CHECK_LT(settings_.cam_idx, ncameras_->getNumCameras());
+  const aslam::Camera& camera = ncameras_->getCamera(settings_.cam_idx);
+
+  LOG(INFO) << "updateOrthomosaicLayer";
 
   grid_map::Matrix& layer_ortho = (*map)["ortho"];
   grid_map::Matrix& layer_num_observations = (*map)["num_observations"];
@@ -59,16 +62,20 @@ void OrthoBackwardGrid::updateOrthomosaicLayer(const Poses& T_G_Cs,
     const grid_map::Index index(*it);
     double x = index(0);
     double y = index(1);
-    Eigen::Vector3d landmark_UTM =
+    const Eigen::Vector3d landmark_UTM =
         Eigen::Vector3d(position.x(), position.y(), layer_elevation(x, y));
+    // LOG(INFO) << "landmark_UTM = " << std::setprecision(15)
+    //          << landmark_UTM.transpose();
 
     // Loop over all images.
     for (size_t i = 0u; i < images.size(); ++i) {
+      // LOG(INFO) << "Processing image " << i << "/" << images.size();
       const Eigen::Vector3d& C_landmark =
           T_G_Cs[i].inverse().transform(landmark_UTM);
       Eigen::Vector2d keypoint;
       const aslam::ProjectionResult& projection_result =
           camera.project3(C_landmark, &keypoint);
+      // LOG(INFO) << "keypoint = " << keypoint.transpose();
 
       // Check if keypoint visible.
       const bool keypoint_visible =
@@ -80,6 +87,7 @@ void OrthoBackwardGrid::updateOrthomosaicLayer(const Poses& T_G_Cs,
           (projection_result.getDetailedStatus() !=
            aslam::ProjectionResult::PROJECTION_INVALID);
       if (keypoint_visible) {
+        // LOG(INFO) << "Visible";
         Eigen::Vector3d u = C_landmark;
         // Observation vector.
         double norm_u = sqrt(u(0) * u(0) + u(1) * u(1) + u(2) * u(2));
@@ -91,12 +99,6 @@ void OrthoBackwardGrid::updateOrthomosaicLayer(const Poses& T_G_Cs,
           layer_elevation_angle(x, y) = std::fabs(alpha);
           layer_observation_index(x, y) = i;
           layer_num_observations(x, y) += layer_num_observations(x, y);
-
-          // Retrieve pixel intensity.
-          const Eigen::Vector3d& C_landmark =
-              T_G_Cs[i].inverse().transform(landmark_UTM);
-          Eigen::Vector2d keypoint;
-          camera.project3(C_landmark, &keypoint);
           const int kp_y = std::min(static_cast<int>(std::round(keypoint(1))),
                                     static_cast<int>(camera.imageHeight()) - 1);
           const int kp_x = std::min(static_cast<int>(std::round(keypoint(0))),
@@ -117,17 +119,41 @@ void OrthoBackwardGrid::updateOrthomosaicLayer(const Poses& T_G_Cs,
           }
         }  // if better observation angle
       }    // if visible
-    }      // loop images
-  }        // loop cells
+      // else {
+      // LOG(INFO) << "Not visible";
+      //}
+    }  // loop images
+  }    // loop cells
 
   const ros::Time time2 = ros::Time::now();
   const ros::Duration& delta_time = time2 - time1;
-  VLOG(1) << "dt(backward_grid, single-thread): " << delta_time;
+  LOG(INFO) << "dt(backward_grid, single-thread): " << delta_time;
+
+  int cols = layer_colored_ortho.cols();
+  int rows = layer_colored_ortho.rows();
+  cv::Mat ortho_image(rows, cols, CV_32FC3);
+  for (size_t row_idx = 0u; row_idx < rows; ++row_idx) {
+    for (size_t col_idx = 0u; col_idx < cols; ++col_idx) {
+      Eigen::Vector3f color_eigen_3f;
+      grid_map::colorValueToVector(layer_colored_ortho(col_idx, row_idx),
+                                   color_eigen_3f);
+      ortho_image.at<cv::Vec3f>(col_idx, row_idx) =
+          cv::Vec3f(color_eigen_3f(0), color_eigen_3f(1), color_eigen_3f(2));
+    }
+  }
+  cv::imshow("ortho_image", ortho_image);
+  cv::waitKey(1000);
+
+  cv::Mat ortho_image_disk;
+  ortho_image.convertTo(ortho_image_disk, CV_8UC3, 255.0);
+  cv::imwrite(settings_.orthomosaic_jpg_filename, ortho_image_disk);
+  cv::destroyAllWindows();
 }
 
 void OrthoBackwardGrid::updateOrthomosaicLayerMultiThreaded(
     const Poses& T_G_Cs, const Images& images, grid_map::GridMap* map) const {
   CHECK(ncameras_);
+  LOG(INFO) << "updateOrthomosaicLayerMultiThreaded";
   const aslam::Camera& camera = ncameras_->getCamera(kFrameIdx);
 
   grid_map::Matrix& layer_ortho = (*map)["ortho"];
@@ -139,8 +165,8 @@ void OrthoBackwardGrid::updateOrthomosaicLayerMultiThreaded(
 
   ros::Time time1 = ros::Time::now();
 
-  auto generateCellWiseOrthomosaic =
-      [&](const std::vector<size_t>& sample_idx_range_) {
+  auto generateCellWiseOrthomosaic = [&](
+      const std::vector<size_t>& sample_idx_range_) {
     for (size_t sample_idx : sample_idx_range_) {
       grid_map::Index index = map_sample_to_cell_index_.at(sample_idx);
       double x = index(0);
@@ -187,10 +213,12 @@ void OrthoBackwardGrid::updateOrthomosaicLayerMultiThreaded(
                 T_G_Cs[i].inverse().transform(landmark_UTM);
             Eigen::Vector2d keypoint;
             camera.project3(C_landmark, &keypoint);
-            const int kp_y = std::min(static_cast<int>(std::round(keypoint(1))),
-                                      static_cast<int>(camera.imageHeight()) - 1);
-            const int kp_x = std::min(static_cast<int>(std::round(keypoint(0))),
-                                      static_cast<int>(camera.imageWidth()) - 1);
+            const int kp_y =
+                std::min(static_cast<int>(std::round(keypoint(1))),
+                         static_cast<int>(camera.imageHeight()) - 1);
+            const int kp_x =
+                std::min(static_cast<int>(std::round(keypoint(0))),
+                         static_cast<int>(camera.imageWidth()) - 1);
             if (settings_.colored_ortho) {
               const cv::Vec3b rgb = images[i].at<cv::Vec3b>(kp_y, kp_x);
               const Eigen::Vector3f color_vector_bgr(
@@ -198,7 +226,8 @@ void OrthoBackwardGrid::updateOrthomosaicLayerMultiThreaded(
                   static_cast<float>(rgb[1]) / 255.0,
                   static_cast<float>(rgb[0]) / 255.0);
               float color_concatenated;
-              grid_map::colorVectorToValue(color_vector_bgr, color_concatenated);
+              grid_map::colorVectorToValue(color_vector_bgr,
+                                           color_concatenated);
               layer_colored_ortho(x, y) = color_concatenated;
             } else {
               const double gray_value = images[i].at<uchar>(kp_y, kp_x);
@@ -227,9 +256,12 @@ void OrthoBackwardGrid::process(const Poses& T_G_Bs, const Images& images,
   CHECK(map);
   LOG(INFO) << "Num. images = " << images.size();
 
+  CHECK(ncameras_);
+  CHECK_LT(settings_.cam_idx, ncameras_->getNumCameras());
+
   Poses T_G_Cs;
   for (const Pose& T_G_B : T_G_Bs) {
-    T_G_Cs.push_back(T_G_B * ncameras_->get_T_C_B(0u).inverse());
+    T_G_Cs.push_back(T_G_B * ncameras_->get_T_C_B(settings_.cam_idx).inverse());
   }
   if (settings_.use_multi_threads) {
     updateOrthomosaicLayerMultiThreaded(T_G_Cs, images, map);
@@ -240,7 +272,8 @@ void OrthoBackwardGrid::process(const Poses& T_G_Bs, const Images& images,
 
 void OrthoBackwardGrid::printParams() const {
   std::stringstream out;
-  out << std::endl << std::string(50, '*') << std::endl
+  out << std::endl
+      << std::string(50, '*') << std::endl
       << "Orthomosaic parameters:" << std::endl
       << utils::paramToString("Show orthomosaic opencv",
                               settings_.show_orthomosaic_opencv)

@@ -38,6 +38,7 @@ struct Settings {
   bool use_digital_elevation_map = true;
   bool colored_ortho = false;
   bool use_multi_threads = true;
+  size_t cam_idx = 0u;
 };
 
 class OrthoBackwardGrid {
