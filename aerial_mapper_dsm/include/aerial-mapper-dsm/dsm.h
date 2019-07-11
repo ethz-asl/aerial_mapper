@@ -41,6 +41,8 @@ class Dsm {
       const AlignedType<std::vector, Eigen::Vector3d>::type& point_cloud,
       grid_map::GridMap* map);
 
+  void setConstantElevation(double elevation, grid_map::GridMap* map);
+
  private:
   void initializeAndFillKdTree(
       const AlignedType<std::vector, Eigen::Vector3d>::type& point_cloud);

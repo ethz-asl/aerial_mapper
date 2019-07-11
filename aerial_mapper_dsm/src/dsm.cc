@@ -200,6 +200,11 @@ void Dsm::process(
   }
 }
 
+void Dsm::setConstantElevation(double elevation, grid_map::GridMap *map) {
+  CHECK(map);
+  (*map)["elevation"].setConstant(elevation);
+}
+
 void Dsm::printParams() {
   std::stringstream out;
   out << std::endl << std::string(50, '*') << std::endl
