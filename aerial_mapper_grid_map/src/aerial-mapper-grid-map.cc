@@ -53,7 +53,7 @@ void AerialGridMap::publishUntilShutdown() {
   ros::NodeHandle node_handle;
   ros::Publisher pub_grid_map =
       node_handle.advertise<grid_map_msgs::GridMap>("grid_map", 1, true);
-  while (true) {
+  while (ros::ok()) {
     map_.setTimestamp(ros::Time::now().toNSec());
     grid_map_msgs::GridMap message;
     grid_map::GridMapRosConverter::toMessage(map_, message);
