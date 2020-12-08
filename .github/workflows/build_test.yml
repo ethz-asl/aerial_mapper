@@ -41,7 +41,7 @@ jobs:
           echo "base_dir = ${GITHUB_WORKSPACE}" > ~/.ccache/ccache.conf
           echo "compression = true" >> ~/.ccache/ccache.conf
           echo "compression_level = 6" >> ~/.ccache/ccache.conf
-          echo "max_size = 400M" >> ~/.ccache/ccache.conf
+          echo "max_size = 800M" >> ~/.ccache/ccache.conf
           ccache -s
           ccache -z
     - name: release_build_test
@@ -62,6 +62,6 @@ jobs:
         rosdep update
         rosdep install --from-paths src --ignore-src -y --rosdistro ${{matrix.config.rosdistro}}
         catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
-        catkin build -j$(nproc) -l$(nproc) aerial_mapper
+        catkin build -j$(nproc) -l$(nproc) aerial_mapper -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
     - name: ccache post-run
       run: ccache -s
