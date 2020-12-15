@@ -1,0 +1,66 @@
+name: Build Test
+on:
+  push:
+    branches:
+    - 'master'
+  pull_request:
+    branches:
+    - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {rosdistro: 'kinetic', container: 'px4io/px4-dev-ros-kinetic:2020-07-18'} 
+          - {rosdistro: 'melodic', container: 'px4io/px4-dev-ros-melodic:2020-08-14'}
+    container: ${{ matrix.config.container }}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        token: ${{ secrets.ACCESS_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Prepare ccache timestamp
+      id: ccache_cache_timestamp
+      shell: cmake -P {0}
+      run: |
+        string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+        message("::set-output name=timestamp::${current_date}")
+    - name: ccache cache files
+      uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: sitl_tests-ccache-${{steps.ccache_cache_timestamp.outputs.timestamp}}
+        restore-keys: sitl_tests-ccache-
+    - name: setup ccache
+      run: |
+          mkdir -p ~/.ccache
+          echo "base_dir = ${GITHUB_WORKSPACE}" > ~/.ccache/ccache.conf
+          echo "compression = true" >> ~/.ccache/ccache.conf
+          echo "compression_level = 6" >> ~/.ccache/ccache.conf
+          echo "max_size = 800M" >> ~/.ccache/ccache.conf
+          ccache -s
+          ccache -z
+    - name: release_build_test
+      working-directory: 
+      run: |
+        apt update
+        apt install -y python3-wstool libgdal-dev autoconf libtool libtool-bin libcurlpp-dev libcurl4-openssl-dev
+        mkdir -p $HOME/catkin_ws/src;
+        cd $HOME/catkin_ws
+        catkin init
+        catkin config --extend "/opt/ros/${{matrix.config.rosdistro}}"
+        catkin config --merge-devel
+        cd $HOME/catkin_ws/src
+        ln -s $GITHUB_WORKSPACE
+        cd $HOME/catkin_ws
+        wstool init src src/aerial_mapper/install/dependencies_https.rosinstall
+        wstool update -t src -j4
+        rosdep update
+        rosdep install --from-paths src --ignore-src -y --rosdistro ${{matrix.config.rosdistro}}
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+        catkin build -j$(nproc) -l$(nproc) aerial_mapper -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+    - name: ccache post-run
+      run: ccache -s
