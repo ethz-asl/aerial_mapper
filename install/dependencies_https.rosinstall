@@ -13,3 +13,9 @@
 - git: {local-name: pcl_catkin, uri: 'https://github.com/ethz-asl/pcl_catkin.git'}
 - git: {local-name: vision_opencv, uri: 'https://github.com/ethz-asl/vision_opencv.git'}
 - git: {local-name: yaml_cpp_catkin, uri: 'https://github.com/ethz-asl/yaml_cpp_catkin.git'}
+- git: {local-name: protobuf_catkin, uri: 'https://github.com/ethz-asl/protobuf_catkin.git'}
+- git: {local-name: ethzasl_apriltag2, uri: 'https://github.com/ethz-asl/ethzasl_apriltag2.git'}
+- git: {local-name: numpy_eigen, uri: 'https://github.com/ethz-asl/numpy_eigen.git'}
+- git: {local-name: libnabo, uri: 'https://github.com/ethz-asl/libnabo.git'}
+- git: {local-name: catkin_boost_python_buildtool, uri: 'https://github.com/ethz-asl/catkin_boost_python_buildtool.git'}
+- git: {local-name: opengv, uri: 'https://github.com/ethz-asl/opengv.git'}
