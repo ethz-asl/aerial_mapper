@@ -16,4 +16,5 @@ publish: build push
 publish-base: build-base push-base
 
 run:
-	docker run -it --rm ethzasl/aerial_mapper:${version} /bin/bash
+	xhost local:root
+	docker run -it --rm -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ethzasl/aerial_mapper:${version} /bin/bash
