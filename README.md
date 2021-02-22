@@ -1,7 +1,5 @@
 # aerial-mapper 
-Ubuntu 14.04, ROS indigo | Ubuntu 16.04, ROS kinetic | 
-:---: | :---: | 
-[![Build Status](https://jenkins.asl.ethz.ch/buildStatus/icon?job=aerial_mapper/lagopus-trusty=lagopus-trusty/)](https://jenkins.asl.ethz.ch/job/aerial_mapper/lagopus-trusty=lagopus-trusty/) | [![Build Status](https://jenkins.asl.ethz.ch/buildStatus/icon?job=aerial_mapper/lagopus-trusty=lagopus-xenial/)](https://jenkins.asl.ethz.ch/job/aerial_mapper/lagopus-trusty=lagopus-xenial/) | 
+
 
 ### Overview
 - Load camera poses from different formats (such as [PIX4D](https://pix4d.com/), [COLMAP](https://colmap.github.io/))
